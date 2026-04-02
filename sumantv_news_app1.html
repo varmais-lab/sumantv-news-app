@@ -213,9 +213,15 @@ function getBnH()  { return document.getElementById('bottom-nav').offsetHeight; 
 
 function buildCards() {
   const feed = document.getElementById('feed');
-  const nh = getNavH(), bh = getBnH();
-  feed.style.top = nh + 'px';
-  feed.style.bottom = bh + 'px';
+  // Force reflow to get accurate heights
+  const nh = document.getElementById('top-nav').getBoundingClientRect().height;
+  const bh = document.getElementById('bottom-nav').getBoundingClientRect().height;
+  const totalH = window.innerHeight;
+  feed.style.top = Math.ceil(nh) + 'px';
+  feed.style.bottom = Math.ceil(bh) + 'px';
+  feed.style.left = '0';
+  feed.style.right = '0';
+  feed.style.position = 'fixed';
   feed.innerHTML = '';
 
   articles.forEach((a, i) => {
@@ -286,7 +292,7 @@ function updateDots() {
 function goTo(idx, anim=true) {
   if (idx < 0 || idx >= articles.length) return;
   cur = idx;
-  const fh = document.getElementById('feed').offsetHeight;
+  const fh = document.getElementById('feed').offsetHeight || window.innerHeight;
   articles.forEach((_,i) => {
     const c = document.getElementById('c'+i);
     if (!c) return;
@@ -327,7 +333,7 @@ document.getElementById('feed').addEventListener('touchmove', function(e) {
   }
 
   // Drag all cards
-  const fh = document.getElementById('feed').offsetHeight;
+  const fh = document.getElementById('feed').offsetHeight || window.innerHeight;
   articles.forEach((_,i) => {
     const c = document.getElementById('c'+i);
     if (!c) return;
@@ -448,7 +454,19 @@ function toast(msg) {
 document.addEventListener('click', () => closeAllE());
 
 /* ── Init ── */
-buildCards();
+function init() {
+  buildCards();
+  // Recalculate on resize (orientation change)
+  window.addEventListener('resize', () => {
+    setTimeout(() => { buildCards(); }, 100);
+  });
+}
+// Wait for full page render before building
+if (document.readyState === 'complete') {
+  init();
+} else {
+  window.addEventListener('load', init);
+}
 </script>
 </body>
 </html>
