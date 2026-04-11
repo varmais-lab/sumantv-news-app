@@ -1,472 +1,2151 @@
 <!DOCTYPE html>
-<html lang="te">
+<html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>SumanTV News</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Telugu:wght@400;500;600;700;800&family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --red: #E8001D; --blue: #0066CC;
-    --text: #1a1a1a; --muted: #999;
-    --border: #e8e8e8; --bg: #f0f0f0;
-    --white: #fff; --dark: #1a1a2e;
-  }
-  html, body { height: 100%; width: 100%; overflow: hidden; background: var(--bg); font-family: 'Barlow', sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ShortNews — Live</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  /* ── Top Nav (fixed) ── */
-  #top-nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-    background: var(--white); border-bottom: 1px solid var(--border);
-    padding: 10px 16px 0;
-  }
-  .nav-logo-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-  .nav-logo-img { height: 24px; width: auto; }
-  .nav-logo-text { font-size: 17px; font-weight: 800; color: var(--red); letter-spacing: 0.5px; }
-  .nav-tabs { display: flex; }
-  .nav-tab { font-family: 'Noto Sans Telugu', sans-serif; font-size: 13px; font-weight: 600; color: var(--muted); padding: 6px 12px 9px; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; }
-  .nav-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+    :root {
+      --bg: #0a0a0f;
+      --accent: #f5c842;
+      --text: #f0eff5;
+      --muted: #7a798a;
+      --border: rgba(255, 255, 255, 0.07);
+    }
 
-  /* ── Bottom Nav (fixed) ── */
-  #bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
-    background: var(--white); border-top: 1px solid var(--border);
-    display: flex; padding: 8px 0 12px;
-  }
-  .bnav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; border: none; background: none; cursor: pointer; padding: 4px; }
-  .bnav-icon { font-size: 19px; line-height: 1; }
-  .bnav-label { font-family: 'Noto Sans Telugu', sans-serif; font-size: 9px; color: var(--muted); }
-  .bnav-btn.active .bnav-label { color: var(--blue); }
+    html,
+    body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      touch-action: none;
+    }
 
-  /* ── Feed ── */
-  #feed { position: fixed; left: 0; right: 0; overflow: hidden; touch-action: none; }
+    /* ── TOP BAR ── */
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: linear-gradient(to bottom, rgba(10, 10, 15, 0.97) 70%, transparent);
+    }
 
-  /* ── Article ── */
-  .article {
-    position: absolute; left: 0; right: 0; height: 100%;
-    background: var(--white);
-    display: flex; flex-direction: column;
-    transition: transform 0.42s cubic-bezier(0.25,0.46,0.45,0.94);
-    will-change: transform;
-  }
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      color: var(--accent);
+    }
 
-  /* Images */
-  .art-images {
-    flex-shrink: 0; height: 38%;
-    display: grid; position: relative; overflow: hidden; background: #ccc;
-  }
-  .art-images.two { grid-template-columns: 1fr 1fr; gap: 2px; }
-  .art-images img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .logo span {
+      color: var(--text);
+    }
 
-  /* Source badge */
-  .src-badge {
-    position: absolute; bottom: 8px; left: 10px;
-    background: rgba(255,255,255,0.93); border-radius: 6px;
-    padding: 4px 8px; display: flex; align-items: center; gap: 5px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.18);
-  }
-  .src-icon { width: 15px; height: 15px; background: var(--red); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #fff; font-weight: 900; flex-shrink: 0; }
-  .src-name { font-size: 10px; font-weight: 700; color: var(--text); }
+    .topbar-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
 
-  /* Image right actions */
-  .img-btns { position: absolute; bottom: 8px; right: 10px; display: flex; gap: 7px; }
-  .img-btn { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.93); border: none; display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.18); transition: all 0.15s; }
-  .img-btn:active { transform: scale(0.88); }
-  .img-btn.bm-active { background: var(--blue); }
+    .cat-pill {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(245, 200, 66, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(245, 200, 66, 0.25);
+      text-transform: uppercase;
+      transition: all 0.3s;
+    }
 
-  /* More btn */
-  .more-btn { position: absolute; top: 8px; right: 10px; width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.88); border: none; font-size: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; letter-spacing: -1px; }
+    .refresh-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
 
-  /* Content */
-  .art-content { flex: 1; overflow-y: auto; padding: 14px 16px 8px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+    .refresh-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+    }
 
-  .art-title { font-family: 'Noto Sans Telugu', sans-serif; font-size: 18px; font-weight: 800; color: var(--text); line-height: 1.45; margin-bottom: 11px; }
-  .art-body { font-family: 'Noto Sans Telugu', sans-serif; font-size: 14.5px; color: #333; line-height: 1.75; margin-bottom: 8px; }
-  .art-time { font-size: 11px; color: var(--muted); margin-bottom: 12px; font-family: 'Barlow', sans-serif; }
+    .refresh-btn svg {
+      width: 13px;
+      height: 13px;
+    }
 
-  /* Reactions */
-  .react-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
-  .react-pill { display: flex; align-items: center; gap: 3px; background: #f3f3f3; border: 1px solid #e0e0e0; border-radius: 20px; padding: 5px 9px; font-size: 14px; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
-  .react-pill.sel { background: #fff0f0; border-color: var(--red); }
-  .react-pill .rc { font-size: 10px; font-weight: 700; color: var(--muted); }
-  .react-pill.sel .rc { color: var(--red); }
+    .refresh-btn.spinning svg {
+      animation: spin 0.8s linear infinite;
+    }
 
-  .expr-wrap { position: relative; }
-  .expr-toggle { display: flex; align-items: center; gap: 3px; background: #f3f3f3; border: 1px solid #e0e0e0; border-radius: 20px; padding: 5px 10px; font-family: 'Noto Sans Telugu', sans-serif; font-size: 11px; font-weight: 600; color: var(--muted); cursor: pointer; white-space: nowrap; transition: all 0.15s; }
-  .expr-toggle.open { border-color: #e8a000; color: #e8a000; background: #fffbf0; }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
-  .expr-picker { position: absolute; bottom: 38px; left: 0; background: var(--white); border: 1px solid #e0e0e0; border-radius: 14px; padding: 8px 10px; display: none; gap: 6px; z-index: 80; box-shadow: 0 4px 20px rgba(0,0,0,0.13); white-space: nowrap; }
-  .expr-picker.show { display: flex; }
-  .expr-emoji { font-size: 22px; cursor: pointer; transition: transform 0.15s; padding: 2px; border-radius: 50%; }
-  .expr-emoji:active { transform: scale(1.3); }
-  .expr-emoji.chosen { background: #fff3c0; }
+    /* ── LOADING SCREEN ── */
+    .loading-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      transition: opacity 0.5s, visibility 0.5s;
+    }
 
-  /* Tap more strip */
-  .tap-strip { flex-shrink: 0; background: var(--dark); padding: 11px 16px; cursor: pointer; }
-  .tap-strip:active { background: #222244; }
-  .tap-text { font-family: 'Barlow', sans-serif; font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.4; }
-  .tap-text strong { color: #fff; font-weight: 700; }
+    .loading-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
 
-  /* Side dots */
-  #sw-dots { position: fixed; right: 5px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 5px; z-index: 60; pointer-events: none; }
-  .sw-dot { width: 3px; height: 3px; background: rgba(0,0,0,0.15); border-radius: 3px; transition: all 0.3s; }
-  .sw-dot.active { background: var(--blue); height: 14px; }
-  .sw-dot.seen { background: rgba(0,0,0,0.3); }
+    .loader-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--accent);
+    }
 
-  /* Swipe hint */
-  #sw-hint { position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: #fff; border-radius: 20px; padding: 6px 16px; font-family: 'Noto Sans Telugu', sans-serif; font-size: 12px; z-index: 60; pointer-events: none; white-space: nowrap; transition: opacity 0.4s; animation: pulse 2.5s infinite; }
-  @keyframes pulse { 0%,100%{opacity:0.9} 50%{opacity:0.4} }
+    .loader-logo span {
+      color: var(--text);
+    }
 
-  /* Toast */
-  #toast { position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%) translateY(16px); background: rgba(0,80,180,0.9); color: #fff; border-radius: 20px; padding: 7px 16px; font-size: 12px; font-weight: 600; font-family: 'Noto Sans Telugu', sans-serif; opacity: 0; transition: all 0.3s; z-index: 100; white-space: nowrap; pointer-events: none; }
-  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .loader-bar {
+      width: 160px;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
 
-  /* Float emoji */
-  .fl-emoji { position: fixed; pointer-events: none; z-index: 200; font-size: 26px; animation: flup 1s ease-out forwards; }
-  @keyframes flup { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-90px) scale(1.5)} }
+    .loader-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
 
-  /* More menu */
-  #more-menu { position: fixed; inset: 0; z-index: 150; display: none; }
-  #more-menu.show { display: block; }
-  .mm-bg { position: absolute; inset: 0; }
-  .mm-box { position: absolute; top: 48px; right: 14px; background: var(--white); border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.14); overflow: hidden; min-width: 170px; }
-  .mm-item { display: flex; align-items: center; gap: 8px; padding: 13px 15px; font-size: 13px; color: var(--text); cursor: pointer; font-family: 'Noto Sans Telugu', sans-serif; border-bottom: 1px solid #f0f0f0; }
-  .mm-item:last-child { border: none; }
-  .mm-item:active { background: #f5f5f5; }
-</style>
+    .loader-text {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+
+    /* ── ERROR SCREEN ── */
+    .error-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: var(--bg);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .error-screen.show {
+      display: flex;
+    }
+
+    .error-icon {
+      font-size: 40px;
+    }
+
+    .error-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: var(--text);
+    }
+
+    .error-msg {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 320px;
+    }
+
+    .error-steps {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      text-align: left;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .error-steps p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .error-steps ol {
+      padding-left: 16px;
+    }
+
+    .error-steps li {
+      font-size: 13px;
+      color: rgba(240, 239, 245, 0.7);
+      line-height: 1.8;
+    }
+
+    .error-steps code {
+      background: rgba(245, 200, 66, 0.15);
+      color: var(--accent);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+
+    .retry-btn {
+      background: var(--accent);
+      color: #0a0a0f;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 28px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .retry-btn:hover {
+      transform: scale(1.03);
+    }
+
+    /* ── CONFIG BANNER ── */
+    .config-banner {
+      position: fixed;
+      top: 56px;
+      left: 0;
+      right: 0;
+      z-index: 90;
+      background: rgba(245, 200, 66, 0.12);
+      border-bottom: 1px solid rgba(245, 200, 66, 0.2);
+      padding: 8px 20px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    .config-banner.show {
+      display: flex;
+    }
+
+    .config-banner a {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ── PROGRESS DOTS ── */
+    .progress-dots {
+      position: fixed;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .dot-item {
+      width: 5px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .dot-item.active {
+      background: var(--accent);
+      height: 18px !important;
+    }
+
+    /* ── CARD STACK ── */
+    .stack {
+      position: fixed;
+      inset: 0;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .stack::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* ── SINGLE CARD ── */
+    .card {
+      height: 100vh;
+      width: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-image {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      background-color: #1a1a24;
+      transition: transform 6s ease;
+    }
+
+    .card:hover .card-image {
+      transform: scale(1.03);
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom,
+          rgba(10, 10, 15, 0.08) 0%,
+          rgba(10, 10, 15, 0.2) 30%,
+          rgba(10, 10, 15, 0.78) 55%,
+          rgba(10, 10, 15, 0.97) 100%);
+      pointer-events: none;
+    }
+
+    .card-content {
+      position: relative;
+      z-index: 2;
+      margin-top: auto;
+      padding: 0 20px 24px;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 4px;
+    }
+
+    .badge-health {
+      background: #1aff9c22;
+      color: #1aff9c;
+      border: 1px solid #1aff9c44;
+    }
+
+    .badge-technology,
+    .badge-tech {
+      background: #38b6ff22;
+      color: #38b6ff;
+      border: 1px solid #38b6ff44;
+    }
+
+    .badge-finance {
+      background: #f5c84222;
+      color: var(--accent);
+      border: 1px solid #f5c84244;
+    }
+
+    .badge-sports {
+      background: #ff6b4722;
+      color: #ff6b47;
+      border: 1px solid #ff6b4744;
+    }
+
+    .badge-world {
+      background: #c084fc22;
+      color: #c084fc;
+      border: 1px solid #c084fc44;
+    }
+
+    .badge-default {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .source-name {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .dot-sep {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .time-ago {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .card-headline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(18px, 5vw, 24px);
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+
+    .card-summary {
+      font-size: clamp(13px, 3.5vw, 15px);
+      line-height: 1.65;
+      color: rgba(240, 239, 245, 0.78);
+      font-weight: 300;
+      margin-bottom: 14px;
+    }
+
+    .read-more {
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      text-decoration: none;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
+
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 8px;
+      transition: all 0.18s;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .action-btn:hover,
+    .action-btn:active {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .action-btn svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .action-btn.liked svg {
+      stroke: #ff6b6b;
+    }
+
+    .action-btn.liked {
+      color: #ff6b6b;
+    }
+
+    .action-btn.bookmarked {
+      color: var(--accent);
+    }
+
+    .action-btn.bookmarked svg {
+      stroke: var(--accent);
+    }
+
+    .action-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    /* swipe hint */
+    .swipe-hint {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      animation: fadeHint 3.5s ease forwards;
+      pointer-events: none;
+    }
+
+    @keyframes fadeHint {
+      0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px)
+      }
+
+      15% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0)
+      }
+
+      80% {
+        opacity: 1
+      }
+
+      100% {
+        opacity: 0
+      }
+    }
+
+    .swipe-hint span {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.45);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .chevrons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .chev {
+      width: 14px;
+      height: 14px;
+      border-right: 2px solid rgba(255, 255, 255, 0.3);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+      transform: rotate(45deg);
+      animation: bounce 1.2s infinite;
+    }
+
+    .chev:nth-child(2) {
+      animation-delay: 0.15s;
+      margin-top: -7px;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      100% {
+        opacity: 0.3;
+        transform: rotate(45deg) translateY(-3px)
+      }
+
+      50% {
+        opacity: 1;
+        transform: rotate(45deg) translateY(3px)
+      }
+    }
+
+    /* live indicator */
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #1aff9c;
+      animation: pulse 2s infinite;
+      display: inline-block;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+
+      50% {
+        opacity: 0.5;
+        transform: scale(1.4)
+      }
+    }
+
+    .live-label {
+      font-size: 11px;
+      color: #1aff9c;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* card count */
+    .card-counter {
+      font-size: 11px;
+      color: var(--muted);
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.6);
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── SHARE SHEET ── */
+    .share-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .share-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .share-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 301;
+      background: #16161f;
+      border-radius: 20px 20px 0 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0 0 env(safe-area-inset-bottom, 12px);
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+      max-height: 92vh;
+      overflow-y: auto;
+    }
+
+    .share-sheet.show {
+      transform: translateY(0);
+    }
+
+    .share-handle {
+      width: 36px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.15);
+      margin: 12px auto 0;
+    }
+
+    .share-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .share-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .share-close {
+      background: rgba(255, 255, 255, 0.07);
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .share-close:hover {
+      background: rgba(255, 255, 255, 0.13);
+      color: var(--text);
+    }
+
+    /* Canvas preview */
+    .share-preview-wrap {
+      position: relative;
+      margin: 16px 20px 12px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      background: #0a0a0f;
+      min-height: 100px;
+    }
+
+    #shareCanvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+    }
+
+    .share-generating {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(10, 10, 15, 0.85);
+      color: var(--muted);
+      font-size: 13px;
+      border-radius: 12px;
+    }
+
+    .share-generating.hidden {
+      display: none;
+    }
+
+    .gen-spinner {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-top-color: var(--accent);
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* Platform grid */
+    .share-platforms {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 4px 20px 20px;
+    }
+
+    .platform-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 14px 8px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+
+    .platform-btn:hover,
+    .platform-btn:active {
+      background: rgba(255, 255, 255, 0.09);
+      color: var(--text);
+      transform: scale(0.97);
+    }
+
+    .platform-btn.whatsapp {
+      color: #25d366;
+    }
+
+    .platform-btn.twitter {
+      color: #e7e7e7;
+    }
+
+    .platform-btn.telegram {
+      color: #29a9eb;
+    }
+
+    .platform-btn.instagram {
+      color: #e1306c;
+    }
+
+    .platform-btn.download {
+      color: var(--accent);
+    }
+
+    .platform-btn.copylink {
+      color: #a78bfa;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      z-index: 400;
+      background: rgba(30, 30, 40, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 24px;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── DEAL CARD ── */
+    .card.deal-card::after {
+      background: linear-gradient(to bottom,
+          rgba(10, 10, 15, 0.15) 0%,
+          rgba(10, 10, 15, 0.4) 35%,
+          rgba(10, 10, 15, 0.92) 65%,
+          rgba(10, 10, 15, 0.99) 100%);
+    }
+
+    .deal-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .deal-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #ff3c6f, #e8006b);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .deal-label::before {
+      content: '⚡';
+      font-size: 11px;
+    }
+
+    .deal-expires {
+      font-size: 11px;
+      color: #ff9f43;
+      font-weight: 600;
+    }
+
+    /* Anchor strip */
+    .anchor-strip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+    }
+
+    .anchor-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e8006b;
+      flex-shrink: 0;
+      background: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .anchor-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .anchor-info {
+      flex: 1;
+    }
+
+    .anchor-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .anchor-quote {
+      font-size: 12px;
+      color: rgba(240, 239, 245, 0.65);
+      line-height: 1.4;
+      font-style: italic;
+    }
+
+    /* Deal price block */
+    .deal-price-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .deal-price {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 8vw, 38px);
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .deal-original {
+      font-size: 16px;
+      color: var(--muted);
+      text-decoration: line-through;
+      padding-bottom: 4px;
+    }
+
+    .deal-saving {
+      font-size: 13px;
+      font-weight: 700;
+      background: rgba(30, 255, 100, 0.12);
+      color: #1aff9c;
+      border: 1px solid rgba(30, 255, 100, 0.25);
+      padding: 3px 10px;
+      border-radius: 20px;
+      padding-bottom: 4px;
+    }
+
+    /* Interest counter */
+    .interest-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .interest-bar-wrap {
+      flex: 1;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .interest-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #ff3c6f, #ff9f43);
+      transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .interest-count {
+      font-size: 12px;
+      font-weight: 700;
+      color: #ff9f43;
+      white-space: nowrap;
+    }
+
+    /* CTA button */
+    .deal-cta {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #e8006b, #ff3c6f);
+      border: none;
+      border-radius: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(232, 0, 107, 0.35);
+    }
+
+    .deal-cta:active {
+      transform: scale(0.98);
+    }
+
+    .deal-cta.registered {
+      background: linear-gradient(135deg, #1aff9c22, #0aaa6622);
+      border: 1px solid #1aff9c44;
+      color: #1aff9c;
+      box-shadow: none;
+    }
+
+    .deal-cta svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* ── INTEREST MODAL ── */
+    .interest-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .interest-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .interest-modal {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 501;
+      background: #16161f;
+      border-radius: 24px 24px 0 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0 24px 32px;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .interest-modal.show {
+      transform: translateY(0);
+    }
+
+    .modal-handle {
+      width: 36px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.15);
+      margin: 14px auto 20px;
+    }
+
+    .modal-deal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .modal-deal-price {
+      font-size: 22px;
+      font-weight: 900;
+      color: #ff3c6f;
+      margin-bottom: 20px;
+    }
+
+    .input-group {
+      margin-bottom: 14px;
+    }
+
+    .input-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      color: var(--text);
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .input-field:focus {
+      border-color: #e8006b;
+    }
+
+    .input-field::placeholder {
+      color: var(--muted);
+    }
+
+    .modal-cta {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #e8006b, #ff3c6f);
+      border: none;
+      border-radius: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      margin-top: 6px;
+      box-shadow: 0 8px 24px rgba(232, 0, 107, 0.35);
+      transition: all 0.2s;
+    }
+
+    .modal-cta:active {
+      transform: scale(0.98);
+    }
+
+    .modal-note {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- Fixed top nav -->
-<div id="top-nav">
-  <div class="nav-logo-row">
-    <img class="nav-logo-img" src="./Aadhan_News_Logo__1_.png" alt="" onerror="this.style.display='none'">
-    <span class="nav-logo-text">SumanTV</span>
+  <!-- LOADING SCREEN -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loader-logo">Short<span>News</span></div>
+    <div class="loader-bar">
+      <div class="loader-bar-fill" id="loaderFill"></div>
+    </div>
+    <div class="loader-text" id="loaderText">Connecting to Google Sheets…</div>
   </div>
-  <div class="nav-tabs">
-    <div class="nav-tab active">నా ఫీడ్</div>
-    <div class="nav-tab">వీడియో షార్ట్స్</div>
+
+  <!-- ERROR SCREEN -->
+  <div class="error-screen" id="errorScreen">
+    <div class="error-icon">⚠️</div>
+    <div class="error-title">Can't load stories</div>
+    <div class="error-msg">Your Google Sheet isn't connected yet. Follow these steps to get it working:</div>
+    <div class="error-steps">
+      <p>Setup checklist</p>
+      <ol>
+        <li>Open your Google Sheet</li>
+        <li>Click <code>File → Share → Publish to web</code></li>
+        <li>Choose <code>Sheet1</code> and <code>CSV</code> format</li>
+        <li>Copy the URL and paste it as <code>Google_SpreedSheets_CSV_URL</code> in this file</li>
+        <li>Make sure columns match: <code>headline, summary, category, source, time, image_url, link</code></li>
+      </ol>
+    </div>
+    <button class="retry-btn" onclick="loadStories()">Try Again</button>
   </div>
-</div>
 
-<!-- Feed -->
-<div id="feed"></div>
-
-<!-- Side dots -->
-<div id="sw-dots"></div>
-
-<!-- Swipe hint -->
-<div id="sw-hint">↑ స్వైప్ అప్ చేయండి</div>
-
-<!-- Fixed bottom nav -->
-<div id="bottom-nav">
-  <button class="bnav-btn"><span class="bnav-icon">🧭</span><span class="bnav-label">అన్వేషించు</span></button>
-  <button class="bnav-btn active"><span class="bnav-icon">🏠</span><span class="bnav-label">హోమ్</span></button>
-  <button class="bnav-btn"><span class="bnav-icon">👤</span><span class="bnav-label">ప్రొఫైల్</span></button>
-</div>
-
-<!-- Toast + More menu -->
-<div id="toast"></div>
-<div id="more-menu">
-  <div class="mm-bg" onclick="closeMM()"></div>
-  <div class="mm-box">
-    <div class="mm-item" onclick="closeMM()">🔗 లింక్ కాపీ చేయండి</div>
-    <div class="mm-item" onclick="closeMM()">🚩 రిపోర్ట్ చేయండి</div>
-    <div class="mm-item" onclick="closeMM()">🚫 ఇవి చూపించకండి</div>
+  <!-- CONFIG BANNER (shown when using demo data) -->
+  <div class="config-banner" id="configBanner">
+    ⚡ Running with demo data — <a href="#" onclick="showSetupGuide()">Connect your Google Sheet</a> to go live
   </div>
-</div>
 
-<script>
-const articles = [
-  { id:1, source:'SumanTV News', images:['https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=700&q=80','https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=700&q=80'], title:'తెలంగాణలో కొత్త విద్యుత్ విధానం: ప్రభుత్వం కీలక నిర్ణయం', body:'తెలంగాణ ప్రభుత్వం కొత్త విద్యుత్ విధానాన్ని ప్రకటించింది. ఈ విధానం ప్రకారం రైతులకు 24 గంటలు నిరంతర విద్యుత్ సరఫరా చేయనున్నారు. ముఖ్యమంత్రి రేవంత్ రెడ్డి ఈ విధానాన్ని వచ్చే ఆర్థిక సంవత్సరం నుండి అమలు చేస్తామని ప్రకటించారు. రాష్ట్రంలో విద్యుత్ సంక్షోభాన్ని అధిగమించడానికి ఈ కొత్త విధానం తోడ్పడుతుందని అధికారులు తెలిపారు.', time:'కొన్ని గంటల క్రితం', tapMore:'మరిన్ని వివరాలు', tapAt:'SumanTV News' },
-  { id:2, source:'SumanTV Entertainment', images:['https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=700&q=80'], title:'మెగాస్టార్ చిరంజీవి నూతన చిత్రం షూటింగ్ ముంబైలో ప్రారంభం', body:'మెగాస్టార్ చిరంజీవి నూతన చిత్రం షూటింగ్ ముంబైలో ప్రారంభమైంది. కొరటాల శివ దర్శకత్వంలో రూపొందే ఈ చిత్రంలో పూజా హెగ్డే హీరోయిన్‌గా నటిస్తోంది. భారీ బడ్జెట్‌తో రూపొందే ఈ చిత్రం 2026 దీపావళికి విడుదల కానుందని నిర్మాతలు తెలిపారు.', time:'2 గంటల క్రితం', tapMore:'ట్రైలర్ చూడండి', tapAt:'SumanTV News' },
-  { id:3, source:'SumanTV Sports', images:['https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=700&q=80','https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=700&q=80'], title:'IPL 2026: సన్‌రైజర్స్ హైదరాబాద్ ముంబై ఇండియన్స్‌పై అద్భుత విజయం', body:'ఇండియన్ ప్రీమియర్ లీగ్‌లో సన్‌రైజర్స్ హైదరాబాద్ ముంబై ఇండియన్స్‌పై అద్భుత విజయం సాధించింది. హైదరాబాద్ జట్టు 180 పరుగులు చేసి ముంబైని 24 పరుగులతో ఓడించింది. పాట్ కమిన్స్ అద్భుత బౌలింగ్ హైదరాబాద్ విజయంలో కీలక పాత్ర పోషించింది.', time:'3 గంటల క్రితం', tapMore:'స్కోర్‌కార్డ్ చూడండి', tapAt:'SumanTV News' },
-  { id:4, source:'SumanTV Business', images:['https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80'], title:'హైదరాబాద్ స్టార్టప్‌కు రూ.500 కోట్ల అంతర్జాతీయ పెట్టుబడి', body:'హైదరాబాద్‌కు చెందిన టెక్ స్టార్టప్ ఇన్నోవేట్ ఏఐకు అంతర్జాతీయ పెట్టుబడిదారులు రూ.500 కోట్ల పెట్టుబడి పెట్టారు. ఈ స్టార్టప్ కృత్రిమ మేధస్సు ఆధారంగా వ్యవసాయ రంగంలో విప్లవం తేనుంది. 200 మంది యువతకు ఉద్యోగావకాశాలు కలిగించనుందని సంస్థ ప్రకటించింది.', time:'5 గంటల క్రితం', tapMore:'పూర్తి కథనం', tapAt:'SumanTV News' },
-  { id:5, source:'SumanTV Health', images:['https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=700&q=80','https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=700&q=80'], title:'వేసవిలో ఆరోగ్యం: నిపుణులు చెప్పే ముఖ్యమైన చిట్కాలు', body:'వేసవి కాలంలో ఆరోగ్యాన్ని కాపాడుకోవడానికి నిపుణులు ముఖ్యమైన సూచనలు ఇచ్చారు. తగినంత నీరు తాగడం, ఎండలో తక్కువగా తిరగడం, తాజా పండ్లు తినడం అవసరమని డాక్టర్లు తెలిపారు. పిల్లలు మరియు వృద్ధులు వేసవిలో అధిక జాగ్రత్తలు తీసుకోవాలని సూచించారు.', time:'8 గంటల క్రితం', tapMore:'డాక్టర్ సలహా', tapAt:'SumanTV News' },
-  { id:6, source:'SumanTV News', images:['https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=700&q=80','https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=700&q=80'], title:'భారత్-పాకిస్తాన్ సరిహద్దులో ఉద్రిక్తత: సైన్యం అప్రమత్తం', body:'భారత్-పాకిస్తాన్ సరిహద్దులో తీవ్ర ఉద్రిక్తత నెలకొంది. భారత సైన్యం పూర్తి అప్రమత్త స్థితిలో ఉంది. సరిహద్దు వెంట భద్రతా బలగాలను పెంచారు. విదేశాంగ మంత్రిత్వ శాఖ పరిస్థితిని నిశితంగా పర్యవేక్షిస్తోంది. ప్రస్తుతానికి పరిస్థితి అదుపులో ఉందని అధికారులు తెలిపారు.', time:'1 గంట క్రితం', tapMore:'మరిన్ని వివరాలు', tapAt:'SumanTV News' },
-  { id:7, source:'SumanTV Entertainment', images:['https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?w=700&q=80'], title:'యంగ్ టైగర్ జూనియర్ NTR కొత్త చిత్రం అప్‌డేట్: షెడ్యూల్ ప్రకటన', body:'యంగ్ టైగర్ జూనియర్ NTR నూతన చిత్రం అప్‌డేట్ వెలువడింది. ప్రసిద్ధ దర్శకుడు దర్శకత్వంలో ఈ చిత్రం రూపొందనుంది. చిత్రం షూటింగ్ మే నెలలో ప్రారంభం కానుందని నిర్మాతలు ధృవీకరించారు. ఈ చిత్రం కోసం అభిమానులు తీవ్ర ఆసక్తిగా ఎదురుచూస్తున్నారు.', time:'4 గంటల క్రితం', tapMore:'మరిన్ని వివరాలు', tapAt:'SumanTV News' },
-  { id:8, source:'SumanTV News', images:['https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=700&q=80','https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=700&q=80'], title:'ఆంధ్రప్రదేశ్‌లో భారీ వర్షాలు: 5 జిల్లాలలో అప్రమత్తత', body:'ఆంధ్రప్రదేశ్‌లో రాబోయే 48 గంటల్లో భారీ వర్షాలు కురవనున్నాయని వాతావరణ శాఖ హెచ్చరించింది. కృష్ణా, గుంటూరు, పశ్చిమగోదావరి, తూర్పుగోదావరి మరియు విశాఖపట్నం జిల్లాలలో అలర్ట్ జారీ చేశారు. రెస్క్యూ టీమ్‌లు సిద్ధంగా ఉన్నాయి.', time:'30 నిమిషాల క్రితం', tapMore:'వాతావరణ నివేదిక', tapAt:'SumanTV News' },
-  { id:9, source:'SumanTV Business', images:['https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=700&q=80'], title:'సెన్సెక్స్ 500 పాయింట్లు పెరిగింది: మార్కెట్ జోష్', body:'భారత స్టాక్ మార్కెట్ సెన్సెక్స్ ఈరోజు 500 పాయింట్లు పెరిగి 82,000 పాయింట్లను దాటింది. ఐటీ మరియు ఫార్మా షేర్లు అధిక లాభాలు నమోదు చేశాయి. విదేశీ పెట్టుబడిదారులు భారత మార్కెట్‌లో విశ్వాసం పెంచుకుంటున్నారు. ఆర్థిక నిపుణులు ఈ పెరుగుదల కొనసాగుతుందని అభిప్రాయపడుతున్నారు.', time:'2 గంటల క్రితం', tapMore:'మార్కెట్ అప్‌డేట్', tapAt:'SumanTV News' },
-  { id:10, source:'SumanTV Health', images:['https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=700&q=80','https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=700&q=80'], title:'కొత్త ఆయుర్వేద చికిత్స: దీర్ఘకాలిక వ్యాధులకు మందు', body:'హైదరాబాద్ ఆయుర్వేద పరిశోధన కేంద్రం కొత్త చికిత్స పద్ధతిని కనుగొంది. ఈ పద్ధతి డయాబెటిస్ మరియు బ్లడ్ ప్రెషర్ వంటి దీర్ఘకాలిక వ్యాధులకు ప్రభావవంతంగా పని చేస్తుందని పరిశోధకులు తెలిపారు. క్లినికల్ ట్రయల్స్‌లో 80% మందికి మంచి ఫలితాలు వచ్చాయి.', time:'6 గంటల క్రితం', tapMore:'పూర్తి నివేదిక', tapAt:'SumanTV News' },
-  { id:11, source:'SumanTV News', images:['https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=700&q=80'], title:'తెలంగాణ విద్యా విప్లవం: 1000 పాఠశాలలకు డిజిటల్ అప్‌గ్రేడ్', body:'తెలంగాణ ప్రభుత్వం రాష్ట్రంలోని 1000 ప్రభుత్వ పాఠశాలలను డిజిటల్‌గా అప్‌గ్రేడ్ చేయనున్నట్లు ప్రకటించింది. స్మార్ట్ క్లాస్‌రూమ్‌లు మరియు హై-స్పీడ్ ఇంటర్నెట్ అందించనున్నారు. ఈ పథకం వల్ల 5 లక్షల మంది విద్యార్థులు లబ్ధి పొందనున్నారు.', time:'10 గంటల క్రితం', tapMore:'మరిన్ని వివరాలు', tapAt:'SumanTV News' },
-  { id:12, source:'SumanTV Sports', images:['https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=700&q=80','https://images.unsplash.com/photo-1517649763962-0c623066013b?w=700&q=80'], title:'ఒలింపిక్ క్వాలిఫికేషన్: భారత అథ్లెట్లు అద్భుత ప్రదర్శన', body:'2028 లాస్ ఏంజెలెస్ ఒలింపిక్స్ క్వాలిఫికేషన్‌లో భారత అథ్లెట్లు అద్భుత ప్రదర్శన కనపర్చారు. షూటింగ్, బ్యాడ్మింటన్ మరియు రెజ్లింగ్ విభాగాల్లో 15 మంది అథ్లెట్లు క్వాలిఫై అయ్యారు. తెలుగు అథ్లెట్లు 3 మంది క్వాలిఫికేషన్ సాధించారు.', time:'12 గంటల క్రితం', tapMore:'పూర్తి వివరాలు', tapAt:'SumanTV News' },
-];
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo">Short<span>News</span></div>
+    <div class="topbar-right">
+      <div class="live-label"><span class="live-dot"></span> LIVE</div>
+      <div class="cat-pill" id="activeCat">Loading…</div>
+      <button class="refresh-btn" id="refreshBtn" onclick="refreshStories()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="23 4 23 10 17 10" />
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </div>
 
-const EXPR = [
-  {e:'😮',l:'షాక్'},{e:'😡',l:'కోపం'},{e:'😢',l:'దుఃఖం'},
-  {e:'🤔',l:'ఆలోచన'},{e:'👏',l:'క్లాప్'},{e:'❤️',l:'ప్రేమ'},{e:'😂',l:'నవ్వు'}
-];
+  <!-- PROGRESS DOTS -->
+  <div class="progress-dots" id="progressDots"></div>
 
-let cur = 0;
-const SNAP = 50;
+  <!-- SWIPE HINT -->
+  <div class="swipe-hint">
+    <div class="chevrons">
+      <div class="chev"></div>
+      <div class="chev"></div>
+    </div>
+    <span>Swipe up</span>
+  </div>
 
-const st = articles.map(() => ({
-  bm: false, myE: null, eo: false,
-  rc: Object.fromEntries(EXPR.map(e=>[e.e, Math.floor(Math.random()*60+5)]))
-}));
+  <!-- CARD COUNTER -->
+  <div class="card-counter" id="cardCounter">1 / ?</div>
 
-/* ── Layout ── */
-function getNavH() { return document.getElementById('top-nav').offsetHeight; }
-function getBnH()  { return document.getElementById('bottom-nav').offsetHeight; }
+  <!-- CARD STACK -->
+  <div class="stack" id="stack"></div>
 
-function buildCards() {
-  const feed = document.getElementById('feed');
-  // Force reflow to get accurate heights
-  const nh = document.getElementById('top-nav').getBoundingClientRect().height;
-  const bh = document.getElementById('bottom-nav').getBoundingClientRect().height;
-  const totalH = window.innerHeight;
-  feed.style.top = Math.ceil(nh) + 'px';
-  feed.style.bottom = Math.ceil(bh) + 'px';
-  feed.style.left = '0';
-  feed.style.right = '0';
-  feed.style.position = 'fixed';
-  feed.innerHTML = '';
-
-  articles.forEach((a, i) => {
-    const s = st[i];
-    const card = document.createElement('div');
-    card.className = 'article';
-    card.id = 'c' + i;
-    card.style.transform = `translateY(${i * 100}%)`;
-
-    const two = a.images.length > 1;
-    const imgs = a.images.map(src =>
-      `<img src="${src}" alt="" onerror="this.src='https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=700&q=80'">`
-    ).join('');
-
-    const top3 = EXPR.filter(e => s.rc[e.e] > 0)
-      .sort((a,b) => s.rc[b.e] - s.rc[a.e]).slice(0, 3);
-    const pills = top3.map(e =>
-      `<div class="react-pill ${s.myE===e.e?'sel':''}" onclick="pickE(${i},'${e.e}',event)">${e.e}<span class="rc">${s.rc[e.e]}</span></div>`
-    ).join('');
-
-    card.innerHTML = `
-      <div class="art-images${two?' two':''}">
-        ${imgs}
-        <div class="src-badge"><div class="src-icon">S</div><span class="src-name">${a.source}</span></div>
-        <div class="img-btns">
-          <button class="img-btn${s.bm?' bm-active':''}" id="bm${i}" onclick="toggleBM(${i},event)">${s.bm?'🔖':'🏷️'}</button>
-          <button class="img-btn" onclick="share(${i},event)">🔗</button>
-        </div>
-        <button class="more-btn" onclick="openMM(event)">•••</button>
+  <!-- ── SHARE SHEET MODAL ── -->
+  <div class="share-overlay" id="shareOverlay" onclick="closeShareSheet()"></div>
+  <div class="share-sheet" id="shareSheet">
+    <div class="share-handle"></div>
+    <div class="share-header">
+      <span class="share-title">Share Story</span>
+      <button class="share-close" onclick="closeShareSheet()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="share-preview-wrap">
+      <canvas id="shareCanvas"></canvas>
+      <div class="share-generating" id="shareGenerating">
+        <div class="gen-spinner"></div>
+        <span>Generating image…</span>
       </div>
-      <div class="art-content" id="ac${i}">
-        <div class="art-title">${a.title}</div>
-        <div class="art-body">${a.body}</div>
-        <div class="art-time">${a.time}</div>
-        <div class="react-row" id="rr${i}">
-          ${pills}
-          <div class="expr-wrap">
-            <button class="expr-toggle" id="et${i}" onclick="togE(${i},event)">😊 స్పందన ▾</button>
-            <div class="expr-picker" id="ep${i}">
-              ${EXPR.map(e=>`<div class="expr-emoji${s.myE===e.e?' chosen':''}" onclick="pickE(${i},'${e.e}',event)">${e.e}</div>`).join('')}
+    </div>
+    <div class="share-platforms">
+      <button class="platform-btn whatsapp" onclick="shareToPlatform('whatsapp')">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+          <path
+            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+        </svg>
+        WhatsApp
+      </button>
+      <button class="platform-btn twitter" onclick="shareToPlatform('twitter')">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+          <path
+            d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622 5.91-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+        </svg>
+        X / Twitter
+      </button>
+      <button class="platform-btn telegram" onclick="shareToPlatform('telegram')">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+          <path
+            d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+        </svg>
+        Telegram
+      </button>
+      <button class="platform-btn instagram" onclick="shareToPlatform('instagram')">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+          <path
+            d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+        </svg>
+        Instagram
+      </button>
+      <button class="platform-btn download" onclick="downloadImage()">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        Download
+      </button>
+      <button class="platform-btn copylink" onclick="copyLink()">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+        </svg>
+        Copy Link
+      </button>
+    </div>
+  </div>
+
+  <!-- ── INTEREST REGISTRATION MODAL ── -->
+  <div class="interest-overlay" id="interestOverlay" onclick="closeInterestModal()"></div>
+  <div class="interest-modal" id="interestModal">
+    <div class="modal-handle"></div>
+    <div class="modal-deal-title" id="modalDealTitle">Deal Title</div>
+    <div class="modal-deal-price" id="modalDealPrice">₹XX,XXX</div>
+    <div class="input-group">
+      <label class="input-label">Your Name</label>
+      <input class="input-field" id="regName" type="text" placeholder="Enter your name" autocomplete="name">
+    </div>
+    <div class="input-group">
+      <label class="input-label">WhatsApp Number</label>
+      <input class="input-field" id="regPhone" type="tel" placeholder="+91 98765 43210" autocomplete="tel">
+    </div>
+    <div class="input-group">
+      <label class="input-label">City</label>
+      <input class="input-field" id="regCity" type="text" placeholder="Hyderabad, Vijayawada…"
+        autocomplete="address-level2">
+    </div>
+    <button class="modal-cta" onclick="submitInterest()">
+      ✅ Yes! I Want This Deal
+    </button>
+    <div class="modal-note">
+      Our team will call you within 24 hours to confirm.<br>
+      No payment now. Zero spam. 100% free to register.
+    </div>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════
+    //  ⚙️  CONFIG — Edit everything here, no other changes needed
+    // ═══════════════════════════════════════════════════════════
+
+    const CONFIG = {
+
+      // ── BRANDING ──────────────────────────────────────────────
+
+      // Option A: Text logo  →  set LOGO_IMAGE_URL to ""
+      LOGO_TEXT_PART1: "Suman",       // colored part  (e.g. "Suman")
+      LOGO_TEXT_PART2: "Health",      // white part     (e.g. "Health")
+
+      // Option B: Image logo  →  paste a direct image URL here
+      // Leave "" to use text logo above
+      // Example: "https://yoursite.com/logo.png"  or a base64 data URI
+      LOGO_IMAGE_URL: "",
+      LOGO_IMAGE_HEIGHT: "28px",      // adjust logo image height
+
+      // App title (browser tab)
+      APP_TITLE: "SumanHealth — Live News",
+
+      // Accent color (top bar pill, dots, highlights)
+      ACCENT_COLOR: "#f5c842",        // yellow default | try "#1aff9c" green, "#ff6b47" orange
+
+      // ── GOOGLE SHEETS ─────────────────────────────────────────
+
+      // HOW TO GET YOUR URL:
+      //  1. Google Sheets → File → Share → Publish to web
+      //  2. Select: Sheet1 | CSV
+      //  3. Click Publish → Copy the URL → paste below
+      SHEET_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTHUaJ-hDpoKcfnmrarEsb_3JBvjBXxfu08FkV_DKbsTo6LAKakYpzWs9GU4MRbQky92cYl--vZXPNh/pub?gid=1288371797&single=true&output=csv",
+
+      // Sheet 2 — Community Deals (same Sheets file, different tab)
+      // In Publish to web → select "Deals" tab → CSV → copy URL
+      DEALS_CSV_URL: "YOUR_DEALS_SHEET_CSV_URL_HERE",
+
+      // After every N news cards, insert one deal card (0 = no deals)
+      DEAL_FREQUENCY: 3,
+
+      // Google Form URL to collect interest registrations
+      // Create a Google Form with: Name, Phone, City, Deal ID fields
+      // Paste the form's pre-filled URL base here
+      INTEREST_FORM_URL: "YOUR_GOOGLE_FORM_URL_HERE",
+
+    };
+    // ─────────────────────────────────────────────────────────────
+
+    // Apply branding immediately
+    document.title = CONFIG.APP_TITLE;
+    document.documentElement.style.setProperty('--accent', CONFIG.ACCENT_COLOR);
+
+    function applyLogo(selector) {
+      const el = document.querySelector(selector);
+      if (!el) return;
+      if (CONFIG.LOGO_IMAGE_URL) {
+        el.innerHTML = `<img src="${CONFIG.LOGO_IMAGE_URL}" style="height:${CONFIG.LOGO_IMAGE_HEIGHT};vertical-align:middle;object-fit:contain;" alt="Logo">`;
+      } else {
+        el.innerHTML = `${CONFIG.LOGO_TEXT_PART1}<span>${CONFIG.LOGO_TEXT_PART2}</span>`;
+      }
+    }
+    applyLogo('.logo');
+    applyLogo('.loader-logo');
+
+    // Alias for rest of the code
+    const SHEET_CSV_URL = CONFIG.SHEET_CSV_URL;
+    const DEALS_CSV_URL = CONFIG.DEALS_CSV_URL;
+
+    // ── DEMO DEALS (shown when DEALS_CSV_URL not configured) ──
+    const DEMO_DEALS = [
+      {
+        type: 'deal',
+        deal_id: 'DEAL001',
+        headline: 'Anchor Roshini Negotiated This For You',
+        product: 'Royal Enfield Classic 350',
+        brand: 'Royal Enfield',
+        deal_price: '₹1,72,000',
+        original_price: '₹1,89,500',
+        saving: 'Save ₹17,500',
+        summary: 'Exclusive community price only for Suman TV subscribers. 1,000 bikes reserved at this price. Once slots fill — it\'s gone.',
+        anchor_name: 'Anchor Roshini',
+        anchor_quote: '"I personally negotiated this price. Only for our community."',
+        anchor_image: '',
+        interest_count: 847,
+        target_count: 1000,
+        expires: 'Ends in 3 days',
+        image_url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+        category: 'Deal',
+      },
+      {
+        type: 'deal',
+        deal_id: 'DEAL002',
+        headline: 'Community Deal — Exclusive Hospital Health Package',
+        product: 'Full Body Checkup + Consultation',
+        brand: 'Apollo Hospitals',
+        deal_price: '₹1,999',
+        original_price: '₹6,500',
+        saving: 'Save ₹4,501',
+        summary: 'Complete health checkup package including 60+ tests, doctor consultation, ECG and diet counselling. Exclusively negotiated for Suman TV community.',
+        anchor_name: 'Dr. Ramesh Babu',
+        anchor_quote: '"Health is wealth. This package is our gift to your family."',
+        anchor_image: '',
+        interest_count: 2341,
+        target_count: 5000,
+        expires: 'Valid this month',
+        image_url: 'https://images.unsplash.com/photo-1551076805-e1869033e561?w=800&q=80',
+        category: 'Deal',
+      },
+      {
+        type: 'deal',
+        deal_id: 'DEAL003',
+        headline: 'Suman TV Community — College Admission Special',
+        product: 'B.Tech Admission 2025 — Top 5 Colleges',
+        brand: 'EduPartner Consultancy',
+        deal_price: 'FREE Counselling',
+        original_price: '₹5,000 fee waived',
+        saving: '+ ₹10,000 Scholarship',
+        summary: 'Register your interest for B.Tech / MBA admissions. Our education partner will help you get into top colleges with scholarship support. 500 seats across Hyderabad, Vijayawada, Vizag.',
+        anchor_name: 'Education Desk',
+        anchor_quote: '"Your child\'s future deserves the best guidance — free."',
+        anchor_image: '',
+        interest_count: 1203,
+        target_count: 2000,
+        expires: 'Admissions close May 30',
+        image_url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80',
+        category: 'Deal',
+      },
+    ];
+
+    // Expected Sheet columns (Row 1 = headers):
+    // headline | summary | category | source | time | image_url | link
+    // ─────────────────────────────────────────────────────────────────
+
+    const BADGE_MAP = {
+      health: 'badge-health', technology: 'badge-technology',
+      tech: 'badge-tech', finance: 'badge-finance',
+      sports: 'badge-sports', world: 'badge-world'
+    };
+
+    // Fallback demo data (used if sheet URL not configured)
+    const DEMO_NEWS = [
+      { headline: "New study links daily walking to 30% lower heart disease risk in adults over 40", summary: "Researchers at Harvard tracked 12,000 adults over 8 years and found those walking 7,000+ steps daily had significantly lower cardiovascular risk. The study suggests moderate activity, not intense exercise, is the key protective factor for long-term heart health.", category: "Health", source: "Health Today", time: "12 min ago", image_url: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80", link: "#" },
+      { headline: "Google unveils next-gen AI chips that cut data center power consumption by half", summary: "Google's new TPU v6 processors promise 2x faster AI inference at 50% lower energy cost. The chips will power Gemini AI services globally by Q3, potentially reshaping economics of large-scale AI deployment.", category: "Technology", source: "TechCrunch", time: "38 min ago", image_url: "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=800&q=80", link: "#" },
+      { headline: "Sensex surges 900 points as FIIs pump ₹8,400 crore into Indian equities on Friday", summary: "Indian stock markets rallied sharply as strong FII inflows and positive global cues boosted sentiment. Banking and IT sectors led the gains. Analysts expect momentum to continue if US Fed signals a rate pause.", category: "Finance", source: "Economic Times", time: "1 hr ago", image_url: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80", link: "#" },
+      { headline: "India defeats Australia by 6 wickets in thrilling T20 series decider in Hyderabad", summary: "Suryakumar Yadav's blistering 89 off 47 balls guided India to victory at Rajiv Gandhi International Stadium. India won the 5-match series 3-2, with 55,000 fans witnessing a masterclass in modern T20 batting.", category: "Sports", source: "Cricbuzz", time: "2 hr ago", image_url: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800&q=80", link: "#" },
+      { headline: "ICMR approves India's first oral insulin therapy for Type 2 diabetes management", summary: "The Indian Council of Medical Research greenlit an oral insulin formulation developed by Biocon and AIIMS Delhi. Phase 3 trials showed 78% efficacy with minimal side effects, potentially eliminating daily injections for millions.", category: "Health", source: "NDTV Health", time: "4 hr ago", image_url: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&q=80", link: "#" },
+      { headline: "Startup builds AI that converts spoken Telugu into medical reports with 97% accuracy", summary: "Hyderabad-based MedVoice AI trained a multilingual clinical transcription model on 2 million Telugu patient interactions. Doctors can now dictate in Telugu, cutting documentation time by 65% in pilot hospitals across Andhra Pradesh.", category: "Technology", source: "YourStory", time: "5 hr ago", image_url: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80", link: "#" },
+    ];
+
+    // ═══════════════════════════════════════════════════════════
+    // CSV Parser
+    // ═══════════════════════════════════════════════════════════
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      if (lines.length < 2) return [];
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
+      return lines.slice(1).map(line => {
+        // Handle quoted fields with commas
+        const fields = [];
+        let cur = '', inQuote = false;
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"') { inQuote = !inQuote; }
+          else if (ch === ',' && !inQuote) { fields.push(cur.trim()); cur = ''; }
+          else { cur += ch; }
+        }
+        fields.push(cur.trim());
+        const obj = {};
+        headers.forEach((h, i) => { obj[h] = (fields[i] || '').replace(/^"|"$/g, ''); });
+        return obj;
+      }).filter(r => r.headline && (r.summary || r.type === 'deal'));
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // Fetch from Google Sheets
+    // ═══════════════════════════════════════════════════════════
+    async function fetchFromSheets() {
+      const isDemo = !SHEET_CSV_URL || SHEET_CSV_URL === 'YOUR_GOOGLE_SHEET_CSV_URL_HERE';
+      if (isDemo) {
+        return { data: mergeDealsIntoFeed(DEMO_NEWS, DEMO_DEALS), isDemo: true };
+      }
+      const resp = await fetch(SHEET_CSV_URL);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const text = await resp.text();
+      const news = parseCSV(text);
+      if (!news.length) throw new Error('No valid rows found in sheet');
+
+      // Try fetching deals sheet if configured
+      let deals = DEMO_DEALS;
+      if (DEALS_CSV_URL && DEALS_CSV_URL !== 'YOUR_DEALS_SHEET_CSV_URL_HERE') {
+        try {
+          const dr = await fetch(DEALS_CSV_URL);
+          if (dr.ok) deals = parseCSV(await dr.text()).map(d => ({ ...d, type: 'deal' }));
+        } catch (e) { console.warn('Deals sheet not loaded, using demos'); }
+      }
+      return { data: mergeDealsIntoFeed(news, deals), isDemo: false };
+    }
+
+    // Interleave deal cards every N news cards
+    function mergeDealsIntoFeed(news, deals) {
+      const freq = CONFIG.DEAL_FREQUENCY || 3;
+      if (!deals.length || !freq) return news;
+      const result = [];
+      let dealIdx = 0;
+      news.forEach((item, i) => {
+        result.push(item);
+        if ((i + 1) % freq === 0 && dealIdx < deals.length) {
+          result.push({ ...deals[dealIdx], type: 'deal' });
+          dealIdx++;
+        }
+      });
+      return result;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // Build Cards
+    // ═══════════════════════════════════════════════════════════
+    let newsData = [];
+    let currentIdx = 0;
+    const likedSet = new Set();
+    const savedSet = new Set();
+
+    function getBadgeClass(cat) {
+      const key = (cat || '').toLowerCase().trim();
+      return BADGE_MAP[key] || 'badge-default';
+    }
+
+    function buildCards(items) {
+      const stack = document.getElementById('stack');
+      const dots = document.getElementById('progressDots');
+      stack.innerHTML = '';
+      dots.innerHTML = '';
+      newsData = items;
+
+      items.forEach((item, i) => {
+        const card = document.createElement('div');
+        card.id = `card-${i}`;
+
+        if (item.type === 'deal') {
+          card.className = 'card deal-card';
+          const imgStyle = item.image_url
+            ? `background-image: url('${item.image_url}')`
+            : `background: linear-gradient(135deg, #1a0010, #3a0020, #1a0010)`;
+          const pct = Math.min(100, Math.round((parseInt(item.interest_count) / parseInt(item.target_count)) * 100)) || 70;
+          const registered = registeredDeals.has(item.deal_id);
+          card.innerHTML = `
+        <div class="card-image" style="${imgStyle}"></div>
+        <div class="card-content">
+          <div class="deal-badge-row">
+            <span class="deal-label">Community Deal</span>
+            ${item.expires ? `<span class="deal-expires">⏰ ${item.expires}</span>` : ''}
+          </div>
+          <div class="anchor-strip">
+            <div class="anchor-avatar">
+              ${item.anchor_image
+              ? `<img src="${item.anchor_image}" alt="${item.anchor_name}">`
+              : '🎙️'}
+            </div>
+            <div class="anchor-info">
+              <div class="anchor-name">${item.anchor_name || 'Suman TV'}</div>
+              <div class="anchor-quote">${item.anchor_quote || ''}</div>
             </div>
           </div>
+          <div class="card-headline">${item.product || item.headline}</div>
+          <div class="card-summary">${item.summary}</div>
+          <div class="deal-price-row">
+            <div class="deal-price">${item.deal_price}</div>
+            ${item.original_price ? `<div class="deal-original">${item.original_price}</div>` : ''}
+            ${item.saving ? `<div class="deal-saving">${item.saving}</div>` : ''}
+          </div>
+          <div class="interest-row">
+            <div class="interest-bar-wrap">
+              <div class="interest-bar-fill" style="width:${pct}%"></div>
+            </div>
+            <div class="interest-count" id="icount-${i}">🔥 ${parseInt(item.interest_count || 0).toLocaleString('en-IN')} interested</div>
+          </div>
+          <button class="deal-cta ${registered ? 'registered' : ''}" id="cta-${i}" onclick="openInterestModal(${i})">
+            ${registered
+              ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> You're Registered!`
+              : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> I Want This Deal`
+            }
+          </button>
         </div>
-      </div>
-      <div class="tap-strip" onclick="tapMore(${i})">
-        <div class="tap-text">${a.tapMore} <strong>${a.tapAt}</strong> లో చదవండి</div>
-      </div>`;
+      `;
+        } else {
+          // ── NEWS CARD ──
+          card.className = 'card';
+          const imgStyle = item.image_url
+            ? `background-image: url('${item.image_url}')`
+            : `background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)`;
+          card.innerHTML = `
+        <div class="card-image" style="${imgStyle}"></div>
+        <div class="card-content">
+          <div class="card-meta">
+            <span class="badge ${getBadgeClass(item.category)}">${item.category || 'News'}</span>
+            <span class="source-name">${item.source || ''}</span>
+            ${item.time ? `<span class="dot-sep">·</span><span class="time-ago">${item.time}</span>` : ''}
+          </div>
+          <div class="card-headline">${item.headline}</div>
+          <div class="card-summary">${item.summary}</div>
+          ${item.link && item.link !== '#' ? `<a class="read-more" href="${item.link}" target="_blank">Read full story →</a>` : '<div style="height:4px"></div>'}
+          <div class="actions">
+            <button class="action-btn like-btn" data-idx="${i}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+              <span class="like-count">${item.likes || 0}</span>
+            </button>
+            <div class="action-divider"></div>
+            <button class="action-btn" onclick="openShareSheet(${i})">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
+              Share
+            </button>
+            <div class="action-divider"></div>
+            <button class="action-btn save-btn" data-idx="${i}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+              </svg>
+              Save
+            </button>
+          </div>
+        </div>
+      `;
+        }
 
-    feed.appendChild(card);
-  });
+        stack.appendChild(card);
 
-  buildDots();
-  updateDots();
-}
+        // Progress dot
+        const d = document.createElement('div');
+        d.className = 'dot-item' + (i === 0 ? ' active' : '');
+        d.style.height = i === 0 ? '18px' : '5px';
+        // Deal dots in pink
+        if (item.type === 'deal') d.style.background = 'rgba(232,0,107,0.4)';
+        dots.appendChild(d);
+      });
 
-function buildDots() {
-  document.getElementById('sw-dots').innerHTML =
-    articles.map((_,i) => `<div class="sw-dot" id="d${i}"></div>`).join('');
-}
+      // Observe cards
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+            const idx = parseInt(entry.target.id.split('-')[1]);
+            setActive(idx);
+          }
+        });
+      }, { threshold: 0.5 });
 
-function updateDots() {
-  articles.forEach((_,i) => {
-    const d = document.getElementById('d'+i);
-    if (d) d.className = 'sw-dot' + (i===cur?' active' : i<cur?' seen' : '');
-  });
-}
+      document.querySelectorAll('.card').forEach(c => observer.observe(c));
 
-function goTo(idx, anim=true) {
-  if (idx < 0 || idx >= articles.length) return;
-  cur = idx;
-  const fh = document.getElementById('feed').offsetHeight || window.innerHeight;
-  articles.forEach((_,i) => {
-    const c = document.getElementById('c'+i);
-    if (!c) return;
-    c.style.transition = anim ? 'transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94)' : 'none';
-    c.style.transform = `translateY(${(i - cur) * fh}px)`;
-    if (i !== cur) { const ac = document.getElementById('ac'+i); if (ac) ac.scrollTop = 0; }
-  });
-  updateDots();
-  closeAllE();
-  if (cur > 0) {
-    const h = document.getElementById('sw-hint');
-    if (h) { h.style.opacity = '0'; setTimeout(() => h.style.display='none', 400); }
-  }
-}
+      // Like buttons
+      document.querySelectorAll('.like-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+          const idx = parseInt(this.dataset.idx);
+          const liked = likedSet.has(idx);
+          if (liked) {
+            likedSet.delete(idx);
+            newsData[idx].likes = Math.max(0, (newsData[idx].likes || 0) - 1);
+            this.classList.remove('liked');
+          } else {
+            likedSet.add(idx);
+            newsData[idx].likes = (newsData[idx].likes || 0) + 1;
+            this.classList.add('liked');
+          }
+          this.querySelector('.like-count').textContent = newsData[idx].likes;
+          this.style.transform = 'scale(1.3)';
+          setTimeout(() => this.style.transform = '', 200);
+        });
+      });
 
-/* ── Unified touch handler ── */
-let tSY = 0, tDY = 0, tActive = false, tFromImage = false;
+      // Save buttons
+      document.querySelectorAll('.save-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+          const idx = parseInt(this.dataset.idx);
+          const saved = savedSet.has(idx);
+          if (saved) { savedSet.delete(idx); this.classList.remove('bookmarked'); }
+          else { savedSet.add(idx); this.classList.add('bookmarked'); }
+        });
+      });
 
-document.getElementById('feed').addEventListener('touchstart', function(e) {
-  tSY = e.touches[0].clientY;
-  tDY = 0;
-  tFromImage = !!e.target.closest('.art-images') || !!e.target.closest('.tap-strip');
-  tActive = true;
-}, { passive: true });
+      setActive(0);
+      document.getElementById('cardCounter').textContent = `1 / ${items.length}`;
+    }
 
-document.getElementById('feed').addEventListener('touchmove', function(e) {
-  if (!tActive) return;
-  tDY = e.touches[0].clientY - tSY;
+    function setActive(idx) {
+      currentIdx = idx;
+      document.querySelectorAll('.dot-item').forEach((d, i) => {
+        d.classList.toggle('active', i === idx);
+        d.style.height = i === idx ? '18px' : '5px';
+      });
+      document.getElementById('activeCat').textContent = newsData[idx]?.category || 'News';
+      document.getElementById('cardCounter').textContent = `${idx + 1} / ${newsData.length}`;
+    }
 
-  // If touch started on content area — only swipe when content is at boundary
-  if (!tFromImage) {
-    const ac = document.getElementById('ac' + cur);
-    if (!ac) return;
-    // Scrolling down (content has more below)
-    if (tDY < 0 && ac.scrollTop + ac.clientHeight < ac.scrollHeight - 2) return;
-    // Scrolling up (content not at top)
-    if (tDY > 0 && ac.scrollTop > 0) return;
-  }
+    // ═══════════════════════════════════════════════════════════
+    // SHARE AS IMAGE — Canvas Generator
+    // ═══════════════════════════════════════════════════════════
+    let shareIdx = null;
+    let shareImageDataUrl = null;
 
-  // Drag all cards
-  const fh = document.getElementById('feed').offsetHeight || window.innerHeight;
-  articles.forEach((_,i) => {
-    const c = document.getElementById('c'+i);
-    if (!c) return;
-    c.style.transition = 'none';
-    c.style.transform = `translateY(${(i - cur) * fh + tDY}px)`;
-  });
-}, { passive: true });
+    async function openShareSheet(idx) {
+      shareIdx = idx;
+      shareImageDataUrl = null;
+      const overlay = document.getElementById('shareOverlay');
+      const sheet = document.getElementById('shareSheet');
+      overlay.classList.add('show');
+      sheet.classList.add('show');
+      document.getElementById('shareGenerating').classList.remove('hidden');
+      await generateShareImage(idx);
+    }
 
-document.getElementById('feed').addEventListener('touchend', function() {
-  if (!tActive) return;
-  tActive = false;
-  if (tDY < -SNAP && cur < articles.length - 1) goTo(cur + 1);
-  else if (tDY > SNAP && cur > 0) goTo(cur - 1);
-  else goTo(cur);
-  tDY = 0;
-}, { passive: true });
+    function closeShareSheet() {
+      document.getElementById('shareOverlay').classList.remove('show');
+      document.getElementById('shareSheet').classList.remove('show');
+    }
 
-/* Desktop scroll + keyboard */
-let wl = false;
-document.addEventListener('wheel', e => {
-  if (wl) return; wl = true; setTimeout(() => wl = false, 600);
-  if (e.deltaY > 20) goTo(cur + 1);
-  if (e.deltaY < -20) goTo(cur - 1);
-}, { passive: true });
+    async function generateShareImage(idx) {
+      const item = newsData[idx];
+      const canvas = document.getElementById('shareCanvas');
+      const ctx = canvas.getContext('2d');
 
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowDown') goTo(cur + 1);
-  if (e.key === 'ArrowUp')   goTo(cur - 1);
-});
+      // Card size — 4:5 portrait (good for IG, WhatsApp, Twitter)
+      const W = 1080, H = 1350;
+      canvas.width = W; canvas.height = H;
 
-/* ── Actions ── */
-function toggleBM(i, e) {
-  e.stopPropagation();
-  const s = st[i]; s.bm = !s.bm;
-  const b = document.getElementById('bm'+i);
-  b.classList.toggle('bm-active', s.bm);
-  b.textContent = s.bm ? '🔖' : '🏷️';
-  if (s.bm) fl('🔖', e);
-  toast(s.bm ? '✅ సేవ్ చేయబడింది' : '❌ తీసివేయబడింది');
-}
+      // ── Background
+      ctx.fillStyle = '#0a0a0f';
+      ctx.fillRect(0, 0, W, H);
 
-function share(i, e) {
-  e.stopPropagation();
-  const a = articles[i];
-  if (navigator.share) navigator.share({ title: a.title, url: location.href }).catch(()=>{});
-  else navigator.clipboard.writeText(a.title + '
-' + location.href).catch(()=>{});
-  toast('🔗 లింక్ కాపీ అయింది');
-}
+      // ── Try loading background image
+      if (item.image_url && item.image_url !== '') {
+        try {
+          const img = await loadImage(item.image_url);
+          // Cover-fit top portion (60% of card)
+          const imgH = H * 0.60;
+          const scale = Math.max(W / img.width, imgH / img.height);
+          const dw = img.width * scale, dh = img.height * scale;
+          const dx = (W - dw) / 2, dy = (imgH - dh) / 2;
+          ctx.drawImage(img, dx, dy, dw, dh);
 
-function tapMore(i) { toast('🌐 ' + articles[i].tapAt + ' తెరవబడుతోంది...'); }
+          // Dark gradient over image
+          const grad = ctx.createLinearGradient(0, imgH * 0.3, 0, imgH);
+          grad.addColorStop(0, 'rgba(10,10,15,0)');
+          grad.addColorStop(0.6, 'rgba(10,10,15,0.85)');
+          grad.addColorStop(1, 'rgba(10,10,15,1)');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, W, imgH);
+        } catch (e) {
+          // Draw gradient background instead
+          drawGradientBg(ctx, W, H);
+        }
+      } else {
+        drawGradientBg(ctx, W, H);
+      }
 
-function openMM(e) { e.stopPropagation(); document.getElementById('more-menu').classList.add('show'); }
-function closeMM()  { document.getElementById('more-menu').classList.remove('show'); }
+      // ── Full bottom panel
+      ctx.fillStyle = '#0a0a0f';
+      ctx.fillRect(0, H * 0.58, W, H * 0.42);
 
-/* ── Expressions ── */
-function togE(i, e) {
-  e.stopPropagation();
-  const was = st[i].eo;
-  closeAllE();
-  if (!was) {
-    st[i].eo = true;
-    document.getElementById('ep'+i)?.classList.add('show');
-    document.getElementById('et'+i)?.classList.add('open');
-  }
-}
+      // ── Category badge
+      const cat = item.category || 'News';
+      const badgeColors = {
+        health: '#1aff9c', technology: '#38b6ff', tech: '#38b6ff',
+        finance: '#f5c842', sports: '#ff6b47', world: '#c084fc'
+      };
+      const badgeColor = badgeColors[cat.toLowerCase()] || '#f5c842';
+      const badgeX = 60, badgeY = H * 0.60;
+      const badgeW = ctx.measureText(cat.toUpperCase()).width + 80;
 
-function closeAllE() {
-  st.forEach((s,i) => {
-    s.eo = false;
-    document.getElementById('ep'+i)?.classList.remove('show');
-    document.getElementById('et'+i)?.classList.remove('open');
-  });
-}
+      ctx.fillStyle = badgeColor + '22';
+      roundRect(ctx, badgeX, badgeY, badgeW, 52, 8);
+      ctx.fill();
+      ctx.strokeStyle = badgeColor + '66';
+      ctx.lineWidth = 1.5;
+      roundRect(ctx, badgeX, badgeY, badgeW, 52, 8);
+      ctx.stroke();
 
-function pickE(i, emoji, e) {
-  e.stopPropagation();
-  const s = st[i];
-  if (s.myE && s.myE !== emoji) s.rc[s.myE] = Math.max(0, s.rc[s.myE] - 1);
-  if (s.myE === emoji) { s.rc[emoji] = Math.max(0, s.rc[emoji]-1); s.myE = null; }
-  else { s.rc[emoji]++; s.myE = emoji; fl(emoji, e); }
-  closeAllE();
-  rebuildRR(i);
-}
+      ctx.fillStyle = badgeColor;
+      ctx.font = 'bold 22px sans-serif';
+      ctx.letterSpacing = '2px';
+      ctx.fillText(cat.toUpperCase(), badgeX + 24, badgeY + 34);
 
-function rebuildRR(i) {
-  const s = st[i];
-  const row = document.getElementById('rr'+i);
-  if (!row) return;
-  const top3 = EXPR.filter(e => s.rc[e.e]>0).sort((a,b)=>s.rc[b.e]-s.rc[a.e]).slice(0,3);
-  row.innerHTML = top3.map(e =>
-    `<div class="react-pill${s.myE===e.e?' sel':''}" onclick="pickE(${i},'${e.e}',event)">${e.e}<span class="rc">${s.rc[e.e]}</span></div>`
-  ).join('') + `
-    <div class="expr-wrap">
-      <button class="expr-toggle" id="et${i}" onclick="togE(${i},event)">😊 స్పందన ▾</button>
-      <div class="expr-picker" id="ep${i}">
-        ${EXPR.map(e=>`<div class="expr-emoji${s.myE===e.e?' chosen':''}" onclick="pickE(${i},'${e.e}',event)">${e.e}</div>`).join('')}
-      </div>
-    </div>`;
-}
+      // ── Source + time
+      ctx.fillStyle = 'rgba(240,239,245,0.45)';
+      ctx.font = '26px sans-serif';
+      ctx.letterSpacing = '0px';
+      const metaY = badgeY + 88;
+      const metaText = [item.source, item.time].filter(Boolean).join('  ·  ');
+      ctx.fillText(metaText, 60, metaY);
 
-function fl(emoji, e) {
-  const span = document.createElement('span');
-  span.className = 'fl-emoji'; span.textContent = emoji;
-  span.style.left = (e?.clientX || window.innerWidth/2) + 'px';
-  span.style.top  = (e?.clientY || window.innerHeight/2) + 'px';
-  document.body.appendChild(span);
-  setTimeout(() => span.remove(), 1100);
-}
+      // ── Headline
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 52px Georgia, serif';
+      const headlineY = metaY + 56;
+      wrapText(ctx, item.headline, 60, headlineY, W - 120, 68, 3);
 
-let tt;
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 2200);
-}
+      // ── Summary
+      ctx.fillStyle = 'rgba(240,239,245,0.72)';
+      ctx.font = '32px sans-serif';
+      const summaryY = headlineY + (countLines(ctx, item.headline, W - 120, 3) * 68) + 32;
+      wrapText(ctx, item.summary, 60, summaryY, W - 120, 46, 4);
 
-document.addEventListener('click', () => closeAllE());
+      // ── Divider
+      const divY = H - 180;
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(60, divY); ctx.lineTo(W - 60, divY); ctx.stroke();
 
-/* ── Init ── */
-function init() {
-  buildCards();
-  // Recalculate on resize (orientation change)
-  window.addEventListener('resize', () => {
-    setTimeout(() => { buildCards(); }, 100);
-  });
-}
-// Wait for full page render before building
-if (document.readyState === 'complete') {
-  init();
-} else {
-  window.addEventListener('load', init);
-}
-</script>
+      // ── Branding (logo text)
+      const logoText1 = CONFIG.LOGO_TEXT_PART1 || 'Short';
+      const logoText2 = CONFIG.LOGO_TEXT_PART2 || 'News';
+      ctx.font = 'bold 36px Georgia, serif';
+      ctx.fillStyle = CONFIG.ACCENT_COLOR || '#f5c842';
+      ctx.fillText(logoText1, 60, divY + 56);
+      const p1w = ctx.measureText(logoText1).width;
+      ctx.fillStyle = 'rgba(240,239,245,0.9)';
+      ctx.fillText(logoText2, 60 + p1w, divY + 56);
+
+      // ── URL
+      const url = item.link && item.link !== '#' ? item.link : window.location.href;
+      ctx.fillStyle = 'rgba(240,239,245,0.4)';
+      ctx.font = '26px monospace';
+      const shortUrl = url.replace(/^https?:\/\/(www\.)?/, '').substring(0, 52);
+      ctx.fillText(shortUrl + (shortUrl.length < url.replace(/^https?:\/\/(www\.)?/, '').length ? '…' : ''), 60, divY + 100);
+
+      shareImageDataUrl = canvas.toDataURL('image/png');
+      document.getElementById('shareGenerating').classList.add('hidden');
+    }
+
+    // ── Canvas helpers
+    function drawGradientBg(ctx, W, H) {
+      const g = ctx.createLinearGradient(0, 0, W, H);
+      g.addColorStop(0, '#1a1a2e'); g.addColorStop(0.5, '#16213e'); g.addColorStop(1, '#0f3460');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    }
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y); ctx.arcTo(x + w, y, x + w, y + r, r);
+      ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+      ctx.lineTo(x + r, y + h); ctx.arcTo(x, y + h, x, y + h - r, r);
+      ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r);
+      ctx.closePath();
+    }
+    function wrapText(ctx, text, x, y, maxW, lineH, maxLines) {
+      const words = text.split(' ');
+      let line = '', lineCount = 0;
+      for (let i = 0; i < words.length; i++) {
+        const test = line + (line ? ' ' : '') + words[i];
+        if (ctx.measureText(test).width > maxW && line) {
+          if (lineCount >= maxLines - 1) {
+            ctx.fillText(line + (i < words.length - 1 ? '…' : ''), x, y + lineCount * lineH);
+            return;
+          }
+          ctx.fillText(line, x, y + lineCount * lineH);
+          line = words[i]; lineCount++;
+        } else { line = test; }
+      }
+      if (line) ctx.fillText(line, x, y + lineCount * lineH);
+    }
+    function countLines(ctx, text, maxW, maxLines) {
+      const words = text.split(' ');
+      let line = '', count = 1;
+      for (let i = 0; i < words.length; i++) {
+        const test = line + (line ? ' ' : '') + words[i];
+        if (ctx.measureText(test).width > maxW && line) {
+          count++; if (count >= maxLines) return maxLines;
+          line = words[i];
+        } else { line = test; }
+      }
+      return count;
+    }
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Image load failed'));
+        img.src = src;
+      });
+    }
+
+    // ── Platform share functions
+    function shareToPlatform(platform) {
+      if (!shareImageDataUrl) return;
+      const item = newsData[shareIdx];
+      const text = `${item.headline}\n\n${item.source} · ${item.time}`;
+      const url = item.link && item.link !== '#' ? item.link : window.location.href;
+
+      if (platform === 'whatsapp') {
+        // WhatsApp: share text + URL (image must be downloaded first on mobile)
+        const msg = encodeURIComponent(`${text}\n\n${url}`);
+        window.open(`https://wa.me/?text=${msg}`, '_blank');
+        showToast('💡 Tip: Download the image and attach it in WhatsApp');
+      } else if (platform === 'twitter') {
+        const tweet = encodeURIComponent(`${item.headline}\n\n${url}\n\nvia ${CONFIG.LOGO_TEXT_PART1 || ''}${CONFIG.LOGO_TEXT_PART2 || ''}`);
+        window.open(`https://twitter.com/intent/tweet?text=${tweet}`, '_blank');
+      } else if (platform === 'telegram') {
+        const msg = encodeURIComponent(`${text}\n\n${url}`);
+        window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
+      } else if (platform === 'instagram') {
+        downloadImage();
+        showToast('Image saved — open Instagram to share it');
+      }
+    }
+
+    function downloadImage() {
+      if (!shareImageDataUrl) return;
+      const item = newsData[shareIdx];
+      const a = document.createElement('a');
+      a.href = shareImageDataUrl;
+      a.download = `${(item.headline || 'news').substring(0, 40).replace(/[^a-z0-9]/gi, '-')}.png`;
+      a.click();
+      showToast('✓ Image downloaded');
+    }
+
+    async function copyLink() {
+      const item = newsData[shareIdx];
+      const url = item.link && item.link !== '#' ? item.link : window.location.href;
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast('✓ Link copied to clipboard');
+      } catch {
+        showToast('Could not copy — try manually');
+      }
+    }
+
+    let toastTimer;
+    function showToast(msg) {
+      let t = document.querySelector('.toast');
+      if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // COMMUNITY DEALS — Interest Registration
+    // ═══════════════════════════════════════════════════════════
+    const registeredDeals = new Set(JSON.parse(localStorage.getItem('suman_registered') || '[]'));
+    let activeDealIdx = null;
+
+    function openInterestModal(idx) {
+      const item = newsData[idx];
+      if (!item || item.type !== 'deal') return;
+      if (registeredDeals.has(item.deal_id)) {
+        showToast('✅ You already registered for this deal!'); return;
+      }
+      activeDealIdx = idx;
+      document.getElementById('modalDealTitle').textContent = item.product || item.headline;
+      document.getElementById('modalDealPrice').textContent = item.deal_price || '';
+      document.getElementById('regName').value = localStorage.getItem('suman_name') || '';
+      document.getElementById('regPhone').value = localStorage.getItem('suman_phone') || '';
+      document.getElementById('regCity').value = localStorage.getItem('suman_city') || '';
+      document.getElementById('interestOverlay').classList.add('show');
+      document.getElementById('interestModal').classList.add('show');
+      setTimeout(() => document.getElementById('regName').focus(), 400);
+    }
+
+    function closeInterestModal() {
+      document.getElementById('interestOverlay').classList.remove('show');
+      document.getElementById('interestModal').classList.remove('show');
+      activeDealIdx = null;
+    }
+
+    function submitInterest() {
+      const name = document.getElementById('regName').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const city = document.getElementById('regCity').value.trim();
+
+      if (!name) { showToast('Please enter your name'); return; }
+      if (!phone) { showToast('Please enter your WhatsApp number'); return; }
+
+      const item = newsData[activeDealIdx];
+
+      // Save locally
+      localStorage.setItem('suman_name', name);
+      localStorage.setItem('suman_phone', phone);
+      localStorage.setItem('suman_city', city);
+      registeredDeals.add(item.deal_id);
+      localStorage.setItem('suman_registered', JSON.stringify([...registeredDeals]));
+
+      // Submit to Google Form if configured
+      if (CONFIG.INTEREST_FORM_URL && CONFIG.INTEREST_FORM_URL !== 'YOUR_GOOGLE_FORM_URL_HERE') {
+        // Pre-fill Google Form — field entry IDs must match your form
+        // Replace entry.XXXXXXXXX with your actual Google Form field IDs
+        const formUrl = CONFIG.INTEREST_FORM_URL +
+          `?entry.name=${encodeURIComponent(name)}` +
+          `&entry.phone=${encodeURIComponent(phone)}` +
+          `&entry.city=${encodeURIComponent(city)}` +
+          `&entry.deal=${encodeURIComponent(item.deal_id + ' — ' + item.product)}`;
+        // Silent submit via iframe (no redirect)
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = formUrl.replace('/viewform', '/formResponse');
+        document.body.appendChild(iframe);
+        setTimeout(() => iframe.remove(), 3000);
+      }
+
+      // Update UI
+      closeInterestModal();
+
+      // Update CTA button
+      const cta = document.getElementById(`cta-${activeDealIdx || 0}`);
+      if (cta) {
+        cta.classList.add('registered');
+        cta.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="20 6 9 17 4 12"/></svg> You're Registered!`;
+      }
+
+      // Bump interest count
+      const countEl = document.getElementById(`icount-${activeDealIdx}`);
+      if (countEl && item) {
+        item.interest_count = (parseInt(item.interest_count) || 0) + 1;
+        countEl.textContent = `🔥 ${item.interest_count.toLocaleString('en-IN')} interested`;
+      }
+
+      showToast('🎉 Registered! Our team will call you soon.');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // Load & Refresh
+    // ═══════════════════════════════════════════════════════════
+    async function loadStories() {
+      const loading = document.getElementById('loadingScreen');
+      const error = document.getElementById('errorScreen');
+      const fill = document.getElementById('loaderFill');
+      const loaderText = document.getElementById('loaderText');
+
+      loading.classList.remove('hidden');
+      error.classList.remove('show');
+
+      // Animate loader
+      fill.style.width = '20%';
+      loaderText.textContent = 'Fetching latest stories…';
+      await delay(300);
+      fill.style.width = '60%';
+
+      try {
+        const { data, isDemo } = await fetchFromSheets();
+        fill.style.width = '90%';
+        loaderText.textContent = `Loaded ${data.length} stories`;
+        await delay(400);
+        fill.style.width = '100%';
+        await delay(200);
+
+        buildCards(data);
+
+        if (isDemo) {
+          document.getElementById('configBanner').classList.add('show');
+        }
+
+        loading.classList.add('hidden');
+      } catch (err) {
+        console.error('Sheet load error:', err);
+        fill.style.width = '100%';
+        await delay(300);
+        loading.classList.add('hidden');
+        error.classList.add('show');
+      }
+    }
+
+    async function refreshStories() {
+      const btn = document.getElementById('refreshBtn');
+      btn.classList.add('spinning');
+      try {
+        const { data, isDemo } = await fetchFromSheets();
+        buildCards(data);
+        if (!isDemo) document.getElementById('configBanner').classList.remove('show');
+      } catch (e) {
+        alert('Refresh failed. Check your sheet URL.');
+      }
+      btn.classList.remove('spinning');
+    }
+
+    function showSetupGuide() {
+      alert(
+        'SETUP GUIDE\n\n' +
+        '1. Create a Google Sheet with these columns:\n' +
+        '   headline | summary | category | source | time | image_url | link\n\n' +
+        '2. File → Share → Publish to web\n' +
+        '3. Choose: Sheet1 → CSV\n' +
+        '4. Click Publish, copy the URL\n\n' +
+        '5. Open this HTML file in a text editor\n' +
+        '6. Find: SHEET_CSV_URL = "YOUR_GOOGLE_SHEET_CSV_URL_HERE"\n' +
+        '7. Replace with your copied URL\n' +
+        '8. Save and reload!'
+      );
+    }
+
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    // Keyboard nav
+    document.addEventListener('keydown', e => {
+      const cards = document.querySelectorAll('.card');
+      if (e.key === 'ArrowDown' || e.key === 'j') {
+        const next = Math.min(currentIdx + 1, newsData.length - 1);
+        cards[next]?.scrollIntoView({ behavior: 'smooth' });
+      }
+      if (e.key === 'ArrowUp' || e.key === 'k') {
+        const prev = Math.max(currentIdx - 1, 0);
+        cards[prev]?.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+
+    // Init
+    loadStories();
+  </script>
 </body>
+
 </html>
