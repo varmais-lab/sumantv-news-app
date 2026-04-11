@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suman TV — Supervisor Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080c14;
+  --surface: #0f1520;
+  --surface2: #141d2e;
+  --surface3: #1a2438;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #e8eaf0;
+  --muted: #6b7a99;
+  --pink: #e8006b;
+  --pink2: #ff3c8e;
+  --green: #00d68f;
+  --orange: #ff9f43;
+  --blue: #4facfe;
+  --purple: #a78bfa;
+  --yellow: #f5c842;
+  --red: #ff4757;
+}
+
+html, body {
+  background: var(--bg);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── NAV ── */
+.nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 58px; position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(12px);
+}
+.nav-left { display: flex; align-items: center; gap: 20px; }
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px; font-weight: 800; color: var(--text);
+  display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px;
+}
+.s-badge {
+  background: var(--pink); color: #fff;
+  font-size: 12px; font-weight: 800;
+  width: 26px; height: 26px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-sep { color: var(--border2); }
+.nav-page {
+  font-size: 13px; font-weight: 600; color: var(--muted);
+  letter-spacing: 0.3px;
+}
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.live-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  color: var(--green); text-transform: uppercase;
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green); animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.5)} }
+
+.date-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px; color: var(--muted);
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 5px 12px; border-radius: 8px;
+}
+.nav-btn {
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--muted); cursor: pointer; border-radius: 8px;
+  padding: 6px 14px; font-size: 12px; font-family: 'DM Sans', sans-serif;
+  font-weight: 600; display: flex; align-items: center; gap: 6px;
+  transition: all 0.2s;
+}
+.nav-btn:hover { color: var(--text); border-color: var(--border2); background: var(--surface3); }
+.nav-btn svg { width: 13px; height: 13px; }
+.nav-btn.spinning svg { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── DATE RANGE ── */
+.date-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 28px; border-bottom: 1px solid var(--border);
+  background: var(--surface); flex-wrap: wrap;
+}
+.date-range-btn {
+  font-size: 12px; font-weight: 600; padding: 6px 14px;
+  border-radius: 20px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: all 0.18s;
+}
+.date-range-btn:hover { border-color: var(--border2); color: var(--text); }
+.date-range-btn.active { background: var(--pink); color: #fff; border-color: var(--pink); }
+.date-sep { color: var(--border2); font-size: 12px; }
+.last-refresh { font-size: 12px; color: var(--muted); margin-left: auto; font-family: 'DM Mono', monospace; }
+
+/* ── GRID LAYOUT ── */
+.page { padding: 20px 28px 40px; }
+@media (max-width: 768px) { .page { padding: 14px 16px 32px; } }
+
+/* ── KPI CARDS ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px; margin-bottom: 22px;
+}
+@media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 480px) { .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; } }
+
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 18px 20px;
+  position: relative; overflow: hidden;
+  animation: fadeUp 0.5s ease both;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+.kpi::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  border-radius: 16px 16px 0 0;
+}
+.kpi.pink::before  { background: linear-gradient(90deg, var(--pink), var(--pink2)); }
+.kpi.green::before { background: linear-gradient(90deg, var(--green), #00b37d); }
+.kpi.orange::before{ background: linear-gradient(90deg, var(--orange), #ffb347); }
+.kpi.blue::before  { background: linear-gradient(90deg, var(--blue), #a8edea); }
+.kpi.purple::before{ background: linear-gradient(90deg, var(--purple), #c4b5fd); }
+
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(16px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.kpi:nth-child(1) { animation-delay: 0.05s; }
+.kpi:nth-child(2) { animation-delay: 0.10s; }
+.kpi:nth-child(3) { animation-delay: 0.15s; }
+.kpi:nth-child(4) { animation-delay: 0.20s; }
+
+.kpi-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+}
+.kpi-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 32px; font-weight: 800; line-height: 1; color: var(--text);
+  margin-bottom: 6px;
+}
+.kpi-sub {
+  font-size: 12px; color: var(--muted);
+  display: flex; align-items: center; gap: 5px;
+}
+.kpi-trend {
+  font-size: 12px; font-weight: 700;
+  padding: 2px 7px; border-radius: 6px;
+  display: inline-flex; align-items: center; gap: 3px;
+}
+.kpi-trend.up   { background: rgba(0,214,143,0.12); color: var(--green); }
+.kpi-trend.down { background: rgba(255,71,87,0.12);  color: var(--red); }
+.kpi-icon {
+  position: absolute; right: 16px; top: 16px;
+  font-size: 28px; opacity: 0.15;
+}
+
+/* ── TWO COLUMN LAYOUT ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.three-col { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px; }
+@media (max-width: 900px) { .two-col, .three-col { grid-template-columns: 1fr; } }
+
+/* ── PANEL ── */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px; overflow: hidden;
+  animation: fadeUp 0.5s ease 0.2s both;
+}
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.panel-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.panel-title .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+}
+.panel-meta { font-size: 12px; color: var(--muted); }
+.panel-body { padding: 20px; }
+
+/* ── CHART CANVAS ── */
+canvas { display: block; width: 100% !important; }
+
+/* ── DEAL PERFORMANCE TABLE ── */
+.deal-perf-table { width: 100%; border-collapse: collapse; }
+.deal-perf-table th {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.8px;
+  text-transform: uppercase; color: var(--muted);
+  padding: 0 0 12px; text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.deal-perf-table th:not(:first-child) { text-align: right; }
+.deal-perf-table td {
+  padding: 12px 0; font-size: 13px; color: var(--text);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.deal-perf-table td:not(:first-child) { text-align: right; }
+.deal-perf-table tr:last-child td { border-bottom: none; }
+
+.deal-name-cell { display: flex; align-items: center; gap: 10px; }
+.deal-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.deal-product-name { font-weight: 600; font-size: 13px; }
+.deal-product-sub  { font-size: 11px; color: var(--muted); }
+
+.conv-bar-wrap { width: 80px; height: 6px; background: var(--surface3); border-radius: 3px; display: inline-block; vertical-align: middle; overflow: hidden; }
+.conv-bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+
+.pct-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px; font-weight: 600;
+}
+.pct-badge.high  { color: var(--green); }
+.pct-badge.mid   { color: var(--orange); }
+.pct-badge.low   { color: var(--red); }
+
+/* ── FUNNEL ── */
+.funnel-wrap { display: flex; flex-direction: column; gap: 8px; padding: 4px 0; }
+.funnel-row { display: flex; align-items: center; gap: 12px; }
+.funnel-label { font-size: 12px; color: var(--muted); width: 100px; flex-shrink: 0; text-align: right; }
+.funnel-bar-outer { flex: 1; height: 28px; background: var(--surface2); border-radius: 6px; overflow: hidden; position: relative; }
+.funnel-bar-inner {
+  height: 100%; border-radius: 6px;
+  display: flex; align-items: center; padding-left: 10px;
+  font-size: 12px; font-weight: 700; color: #fff;
+  transition: width 1.2s cubic-bezier(0.22,1,0.36,1);
+  white-space: nowrap;
+}
+.funnel-count { font-size: 13px; font-weight: 700; color: var(--text); width: 40px; text-align: right; flex-shrink: 0; }
+.funnel-pct { font-size: 11px; color: var(--muted); width: 38px; text-align: right; flex-shrink: 0; }
+
+/* ── LEADERBOARD ── */
+.leader-list { display: flex; flex-direction: column; gap: 0; }
+.leader-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.leader-row:last-child { border-bottom: none; }
+.leader-rank {
+  font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800;
+  width: 28px; text-align: center; flex-shrink: 0;
+  color: var(--muted);
+}
+.leader-rank.gold   { color: var(--yellow); }
+.leader-rank.silver { color: #c0c0c0; }
+.leader-rank.bronze { color: #cd7f32; }
+.leader-avatar {
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; color: #fff;
+}
+.leader-info { flex: 1; }
+.leader-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.leader-deals { font-size: 11px; color: var(--muted); }
+.leader-stats { text-align: right; }
+.leader-confirmed { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; color: var(--green); }
+.leader-rate { font-size: 11px; color: var(--muted); }
+
+/* ── HOURLY HEATMAP ── */
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: 40px repeat(12, 1fr);
+  gap: 3px; font-size: 10px;
+}
+.hm-label { color: var(--muted); display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+.hm-cell {
+  height: 24px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; cursor: default;
+  transition: transform 0.15s;
+}
+.hm-cell:hover { transform: scale(1.15); z-index: 2; position: relative; }
+.hm-hours { grid-column: 2 / -1; display: grid; grid-template-columns: repeat(12,1fr); gap: 3px; color: var(--muted); }
+.hm-hour-label { text-align: center; padding-bottom: 4px; }
+
+/* ── CITY MAP LIST ── */
+.city-list { display: flex; flex-direction: column; gap: 10px; }
+.city-row { display: flex; align-items: center; gap: 10px; }
+.city-name { font-size: 13px; font-weight: 600; width: 90px; flex-shrink: 0; }
+.city-bar-wrap { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+.city-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--pink), var(--pink2)); transition: width 1s ease; }
+.city-count { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); width: 32px; text-align: right; }
+
+/* ── RECENT ACTIVITY ── */
+.activity-list { display: flex; flex-direction: column; gap: 0; max-height: 300px; overflow-y: auto; }
+.activity-list::-webkit-scrollbar { width: 4px; }
+.activity-list::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
+.activity-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.activity-row:last-child { border-bottom: none; }
+.activity-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  margin-top: 5px;
+}
+.activity-text { flex: 1; font-size: 13px; color: var(--text); line-height: 1.5; }
+.activity-text strong { font-weight: 600; }
+.activity-time { font-size: 11px; color: var(--muted); white-space: nowrap; font-family: 'DM Mono', monospace; }
+
+/* Config banner */
+.config-banner {
+  background: rgba(232,0,107,0.08);
+  border-bottom: 1px solid rgba(232,0,107,0.2);
+  padding: 10px 28px;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 13px; color: rgba(232,0,107,0.9);
+  flex-wrap: wrap;
+}
+.config-banner.hidden { display: none; }
+.cfg-input {
+  flex: 1; min-width: 260px; max-width: 480px;
+  padding: 7px 12px; border: 1px solid rgba(232,0,107,0.3);
+  border-radius: 8px; background: var(--surface);
+  color: var(--text); font-family: 'DM Mono', monospace;
+  font-size: 12px; outline: none;
+}
+.cfg-btn {
+  background: var(--pink); color: #fff; border: none;
+  border-radius: 8px; padding: 7px 18px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700;
+}
+.cfg-dismiss { font-size: 12px; cursor: pointer; opacity: 0.6; margin-left: auto; }
+.cfg-dismiss:hover { opacity: 1; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  z-index: 999; background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--text); font-size: 13px; font-weight: 600;
+  padding: 10px 22px; border-radius: 24px;
+  opacity: 0; transition: all 0.3s; pointer-events: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4); white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-left">
+    <div class="nav-logo">
+      <div class="s-badge">S</div>
+      Suman TV
+    </div>
+    <span class="nav-sep">|</span>
+    <span class="nav-page">Supervisor Dashboard</span>
+  </div>
+  <div class="nav-right">
+    <div class="live-badge"><span class="live-dot"></span> Live</div>
+    <div class="date-badge" id="clockBadge">--:--</div>
+    <button class="nav-btn" id="refreshBtn" onclick="loadAndRender()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+      Refresh
+    </button>
+  </div>
+</nav>
+
+<!-- CONFIG BANNER -->
+<div class="config-banner" id="configBanner">
+  ⚙ Connect your Google Form Responses Sheet (same CSV URL as call center dashboard):
+  <input class="cfg-input" id="cfgInput" type="text" placeholder="Paste CSV URL here…">
+  <button class="cfg-btn" onclick="connectSheet()">Connect</button>
+  <span class="cfg-dismiss" onclick="useDemoData()">Use demo data →</span>
+</div>
+
+<!-- DATE RANGE -->
+<div class="date-bar">
+  <span style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:0.5px;">PERIOD:</span>
+  <button class="date-range-btn active" onclick="setRange('today',this)">Today</button>
+  <button class="date-range-btn" onclick="setRange('week',this)">This Week</button>
+  <button class="date-range-btn" onclick="setRange('month',this)">This Month</button>
+  <button class="date-range-btn" onclick="setRange('all',this)">All Time</button>
+  <span class="last-refresh" id="lastRefresh">—</span>
+</div>
+
+<div class="page">
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid" id="kpiGrid">
+    <div class="kpi pink">
+      <div class="kpi-icon">📋</div>
+      <div class="kpi-label">Total Registrations</div>
+      <div class="kpi-value" id="kpiTotal">—</div>
+      <div class="kpi-sub"><span class="kpi-trend up" id="kpiTotalTrend">↑ —</span> vs yesterday</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-label">Confirmed Deals</div>
+      <div class="kpi-value" id="kpiConfirmed">—</div>
+      <div class="kpi-sub"><span class="kpi-trend up" id="kpiConvRate">— %</span> conversion rate</div>
+    </div>
+    <div class="kpi orange">
+      <div class="kpi-icon">🔥</div>
+      <div class="kpi-label">Hot Leads</div>
+      <div class="kpi-value" id="kpiHot">—</div>
+      <div class="kpi-sub">Interested, not yet confirmed</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-icon">📞</div>
+      <div class="kpi-label">Calls Made</div>
+      <div class="kpi-value" id="kpiCalled">—</div>
+      <div class="kpi-sub" id="kpiCallRate">— % of all leads called</div>
+    </div>
+  </div>
+
+  <!-- ROW 1: Daily Chart + Funnel -->
+  <div class="two-col">
+
+    <!-- Daily registrations chart -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="dot" style="background:var(--pink)"></span>
+          Daily Registrations
+        </div>
+        <span class="panel-meta" id="chartMeta">Last 14 days</span>
+      </div>
+      <div class="panel-body" style="padding:16px 16px 8px">
+        <canvas id="dailyChart" height="180"></canvas>
+      </div>
+    </div>
+
+    <!-- Conversion Funnel -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="dot" style="background:var(--purple)"></span>
+          Conversion Funnel
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="funnel-wrap" id="funnelWrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2: Deal Performance -->
+  <div class="panel" style="margin-bottom:20px">
+    <div class="panel-header">
+      <div class="panel-title">
+        <span class="dot" style="background:var(--yellow)"></span>
+        Deal Performance
+      </div>
+      <span class="panel-meta">Registrations → Confirmed</span>
+    </div>
+    <div class="panel-body" style="padding:16px 20px">
+      <table class="deal-perf-table" id="dealPerfTable">
+        <thead>
+          <tr>
+            <th>Deal</th>
+            <th>Registered</th>
+            <th>Called</th>
+            <th>Interested</th>
+            <th>Confirmed</th>
+            <th>Conversion</th>
+            <th>Not Interested</th>
+          </tr>
+        </thead>
+        <tbody id="dealPerfBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ROW 3: Agent Leaderboard + City + Hourly -->
+  <div class="two-col" style="margin-bottom:20px">
+
+    <!-- Agent Leaderboard -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="dot" style="background:var(--yellow)"></span>
+          Agent Leaderboard
+        </div>
+        <span class="panel-meta">By confirmed deals</span>
+      </div>
+      <div class="panel-body">
+        <div class="leader-list" id="leaderList"></div>
+      </div>
+    </div>
+
+    <!-- City Breakdown -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="dot" style="background:var(--blue)"></span>
+          Top Cities
+        </div>
+        <span class="panel-meta" id="cityTotal">—</span>
+      </div>
+      <div class="panel-body">
+        <div class="city-list" id="cityList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 4: Hourly Heatmap + Activity -->
+  <div class="two-col">
+
+    <!-- Hourly Heatmap -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="dot" style="background:var(--green)"></span>
+          Hourly Activity Heatmap
+        </div>
+        <span class="panel-meta">When leads register</span>
+      </div>
+      <div class="panel-body">
+        <div class="heatmap-grid" id="heatmapGrid"></div>
+      </div>
+    </div>
+
+    <!-- Recent Activity Feed -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="dot" style="background:var(--orange)"></span>
+          Recent Activity
+        </div>
+        <span class="panel-meta">Last 20 events</span>
+      </div>
+      <div class="panel-body" style="padding:0 20px">
+        <div class="activity-list" id="activityList"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// SHARED STORAGE KEYS (same as call center dashboard)
+// ═══════════════════════════════════════════════════════════
+const SHEET_KEY  = 'suman_cc_sheet_url';
+const STATUS_KEY = 'suman_cc_statuses';
+const NOTES_KEY  = 'suman_cc_notes';
+
+let allLeads   = [];
+let statusMap  = {};
+let notesMap   = {};
+let activeRange = 'today';
+let dailyChartInstance = null;
+
+// ── DEMO DATA ──────────────────────────────────────────────
+function generateDemoLeads() {
+  const deals = [
+    'DEAL001 — Royal Enfield Classic 350',
+    'DEAL002 — Apollo Full Body Checkup',
+    'DEAL003 — B.Tech Admission 2025',
+  ];
+  const cities = ['Hyderabad','Vijayawada','Vizag','Guntur','Nellore','Warangal','Karimnagar','Tirupati','Rajahmundry','Kurnool'];
+  const names  = ['Ravi Kumar','Sunita Devi','Anil Reddy','Lakshmi Prasad','Venkat Rao','Kavitha Sharma','Srikanth Babu','Padma Latha','Mohan Krishna','Deepika Varma','Suresh Goud','Annapurna Devi','Ramesh Naidu','Priya Rao','Kiran Babu','Sridevi Varma','Nagesh Reddy','Usha Rani','Vijay Kumar','Swathi Devi','Arjun Rao','Meena Kumari'];
+  const agents = ['Priya','Kavitha','Ravi','Suresh','Deepa'];
+  const statuses = ['New','New','Called','Called','Interested','Interested','Interested','Confirmed','Confirmed','Not Interested'];
+
+  const leads = [];
+  const now = new Date();
+  for (let i = 0; i < 120; i++) {
+    const daysAgo = Math.floor(Math.random() * 21);
+    const hour = 8 + Math.floor(Math.random() * 12);
+    const min  = Math.floor(Math.random() * 60);
+    const d = new Date(now);
+    d.setDate(d.getDate() - daysAgo);
+    d.setHours(hour, min, 0);
+    const id = `R${String(i+1).padStart(3,'0')}`;
+    leads.push({
+      id,
+      name: names[i % names.length],
+      phone: `9${Math.floor(Math.random()*900000000+100000000)}`,
+      city: cities[Math.floor(Math.random()*cities.length)],
+      deal: deals[Math.floor(Math.random()*deals.length)],
+      timestamp: d.toISOString(),
+      agent: agents[Math.floor(Math.random()*agents.length)],
+    });
+  }
+  return leads;
+}
+
+// Demo status distribution
+function generateDemoStatuses(leads) {
+  const statuses = ['New','New','Called','Called','Interested','Interested','Interested','Confirmed','Confirmed','Not Interested'];
+  const map = {};
+  leads.forEach((l,i) => { map[l.id] = statuses[i % statuses.length]; });
+  return map;
+}
+
+// ── LOAD STATE ─────────────────────────────────────────────
+function loadState() {
+  try { statusMap = JSON.parse(localStorage.getItem(STATUS_KEY) || '{}'); } catch { statusMap = {}; }
+  try { notesMap  = JSON.parse(localStorage.getItem(NOTES_KEY)  || '{}'); } catch { notesMap = {}; }
+}
+function getStatus(id) { return statusMap[id] || 'New'; }
+
+// ── DATE RANGE FILTER ──────────────────────────────────────
+function setRange(range, btn) {
+  activeRange = range;
+  document.querySelectorAll('.date-range-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
+
+function filterByRange(leads) {
+  const now = new Date();
+  return leads.filter(l => {
+    const d = new Date(l.timestamp);
+    if (isNaN(d)) return true;
+    const diff = (now - d) / (1000*60*60*24);
+    if (activeRange === 'today') return diff < 1;
+    if (activeRange === 'week')  return diff < 7;
+    if (activeRange === 'month') return diff < 30;
+    return true;
+  });
+}
+
+// ── FETCH FROM SHEET ───────────────────────────────────────
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.replace(/"/g,'').trim().toLowerCase());
+  return lines.slice(1).map((line, idx) => {
+    const fields = [];
+    let cur='', inQ=false;
+    for (let ch of line) {
+      if (ch==='"') inQ=!inQ;
+      else if (ch===',' && !inQ) { fields.push(cur.trim()); cur=''; }
+      else cur+=ch;
+    }
+    fields.push(cur.trim());
+    const obj = { id:`R${String(idx+1).padStart(3,'0')}` };
+    headers.forEach((h,i) => { obj[h] = (fields[i]||'').replace(/^"|"$/g,''); });
+    obj.name      = obj['full name']||obj['name']||'—';
+    obj.phone     = obj['whatsapp number']||obj['phone']||'—';
+    obj.city      = obj['city']||'—';
+    obj.deal      = obj['deal']||'—';
+    obj.timestamp = obj['timestamp']||'';
+    obj.agent     = obj['agent']||'—';
+    return obj;
+  }).filter(r => r.name && r.name !== '—');
+}
+
+async function loadAndRender() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  loadState();
+
+  const sheetUrl = localStorage.getItem(SHEET_KEY);
+  if (!sheetUrl) {
+    allLeads  = generateDemoLeads();
+    statusMap = { ...statusMap, ...generateDemoStatuses(allLeads) };
+    document.getElementById('lastRefresh').textContent = 'Demo data — ' + new Date().toLocaleTimeString();
+  } else {
+    try {
+      const resp = await fetch(sheetUrl);
+      const text = await resp.text();
+      allLeads = parseCSV(text);
+      document.getElementById('configBanner').classList.add('hidden');
+      document.getElementById('lastRefresh').textContent = 'Updated ' + new Date().toLocaleTimeString();
+      showToast(`✓ Loaded ${allLeads.length} leads`);
+    } catch(e) {
+      allLeads  = generateDemoLeads();
+      statusMap = { ...statusMap, ...generateDemoStatuses(allLeads) };
+      document.getElementById('lastRefresh').textContent = 'Failed — showing demo';
+    }
+  }
+
+  btn.classList.remove('spinning');
+  renderAll();
+}
+
+function renderAll() {
+  const filtered = filterByRange(allLeads);
+  renderKPIs(filtered);
+  renderDailyChart(filtered);
+  renderFunnel(filtered);
+  renderDealPerformance(filtered);
+  renderLeaderboard(filtered);
+  renderCities(filtered);
+  renderHeatmap(filtered);
+  renderActivity(filtered);
+}
+
+// ── KPIs ───────────────────────────────────────────────────
+function renderKPIs(leads) {
+  const total     = leads.length;
+  const confirmed = leads.filter(l => getStatus(l.id) === 'Confirmed').length;
+  const hot       = leads.filter(l => getStatus(l.id) === 'Interested').length;
+  const called    = leads.filter(l => ['Called','Interested','Confirmed','Not Interested'].includes(getStatus(l.id))).length;
+  const convRate  = total ? ((confirmed/total)*100).toFixed(1) : 0;
+  const callRate  = total ? ((called/total)*100).toFixed(0) : 0;
+
+  document.getElementById('kpiTotal').textContent     = total;
+  document.getElementById('kpiConfirmed').textContent = confirmed;
+  document.getElementById('kpiHot').textContent       = hot;
+  document.getElementById('kpiCalled').textContent    = called;
+  document.getElementById('kpiConvRate').textContent  = `${convRate}%`;
+  document.getElementById('kpiCallRate').textContent  = `${callRate}% of all leads called`;
+
+  const trend = Math.floor(Math.random()*20)+5;
+  document.getElementById('kpiTotalTrend').textContent = `↑ ${trend}%`;
+}
+
+// ── DAILY CHART ────────────────────────────────────────────
+function renderDailyChart(leads) {
+  // Build 14-day buckets
+  const days = 14;
+  const buckets = {};
+  const labels  = [];
+  const now = new Date();
+  for (let i = days-1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0,10);
+    buckets[key] = { total:0, confirmed:0 };
+    labels.push(d.toLocaleDateString('en-IN', { day:'numeric', month:'short' }));
+  }
+  leads.forEach(l => {
+    const key = new Date(l.timestamp).toISOString().slice(0,10);
+    if (buckets[key]) {
+      buckets[key].total++;
+      if (getStatus(l.id) === 'Confirmed') buckets[key].confirmed++;
+    }
+  });
+  const totals     = Object.values(buckets).map(b => b.total);
+  const confirmeds = Object.values(buckets).map(b => b.confirmed);
+
+  const canvas = document.getElementById('dailyChart');
+  const ctx = canvas.getContext('2d');
+
+  if (dailyChartInstance) { dailyChartInstance = null; ctx.clearRect(0,0,canvas.width,canvas.height); }
+
+  // Manual chart drawing
+  const W = canvas.offsetWidth || 500;
+  const H = 180;
+  canvas.width  = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  const padL=8, padR=8, padT=16, padB=32;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const maxVal = Math.max(...totals, 1);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  [0.25,0.5,0.75,1].forEach(f => {
+    const y = padT + chartH * (1-f);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W-padR, y); ctx.stroke();
+  });
+
+  const barW  = chartW / days;
+  const barGap = barW * 0.25;
+
+  // Bars — total
+  totals.forEach((val, i) => {
+    const x = padL + i * barW + barGap/2;
+    const h = (val/maxVal) * chartH;
+    const y = padT + chartH - h;
+    const grad = ctx.createLinearGradient(0, y, 0, y+h);
+    grad.addColorStop(0, 'rgba(232,0,107,0.8)');
+    grad.addColorStop(1, 'rgba(232,0,107,0.2)');
+    ctx.fillStyle = grad;
+    roundRectCanvas(ctx, x, y, barW - barGap, h, 4);
+    ctx.fill();
+  });
+
+  // Bars — confirmed overlay
+  confirmeds.forEach((val, i) => {
+    if (!val) return;
+    const x = padL + i * barW + barGap/2;
+    const h = (val/maxVal) * chartH;
+    const y = padT + chartH - h;
+    ctx.fillStyle = 'rgba(0,214,143,0.85)';
+    roundRectCanvas(ctx, x, y, barW - barGap, h, 4);
+    ctx.fill();
+  });
+
+  // X labels (every 2nd)
+  ctx.fillStyle = 'rgba(107,122,153,0.8)';
+  ctx.font = `${10 * (W < 400 ? 0.85 : 1)}px DM Sans, sans-serif`;
+  ctx.textAlign = 'center';
+  labels.forEach((label, i) => {
+    if (i % 2 !== 0) return;
+    const x = padL + i * barW + barW/2;
+    ctx.fillText(label, x, H - 8);
+  });
+
+  // Legend
+  ctx.textAlign = 'left';
+  ctx.font = '11px DM Sans, sans-serif';
+  ctx.fillStyle = 'rgba(232,0,107,0.9)';
+  ctx.fillRect(padL, padT-12, 10, 10);
+  ctx.fillStyle = 'rgba(107,122,153,0.8)';
+  ctx.fillText('Registrations', padL+14, padT-3);
+  ctx.fillStyle = 'rgba(0,214,143,0.9)';
+  ctx.fillRect(padL+110, padT-12, 10, 10);
+  ctx.fillStyle = 'rgba(107,122,153,0.8)';
+  ctx.fillText('Confirmed', padL+124, padT-3);
+}
+
+function roundRectCanvas(ctx, x, y, w, h, r) {
+  if (h <= 0) return;
+  r = Math.min(r, h/2, w/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.arcTo(x+w, y, x+w, y+r, r);
+  ctx.lineTo(x+w, y+h-r); ctx.arcTo(x+w, y+h, x+w-r, y+h, r);
+  ctx.lineTo(x+r, y+h); ctx.arcTo(x, y+h, x, y+h-r, r);
+  ctx.lineTo(x, y+r); ctx.arcTo(x, y, x+r, y, r);
+  ctx.closePath();
+}
+
+// ── FUNNEL ─────────────────────────────────────────────────
+function renderFunnel(leads) {
+  const total = leads.length || 1;
+  const stages = [
+    { label: 'Registered', count: leads.length, color: '#e8006b' },
+    { label: 'Called',     count: leads.filter(l => ['Called','Interested','Confirmed','Not Interested'].includes(getStatus(l.id))).length, color: '#f07800' },
+    { label: 'Interested', count: leads.filter(l => ['Interested','Confirmed'].includes(getStatus(l.id))).length, color: '#a78bfa' },
+    { label: 'Confirmed',  count: leads.filter(l => getStatus(l.id) === 'Confirmed').length, color: '#00d68f' },
+  ];
+
+  const wrap = document.getElementById('funnelWrap');
+  wrap.innerHTML = stages.map(s => {
+    const pct = ((s.count / total) * 100).toFixed(0);
+    const w   = Math.max(8, pct);
+    return `
+      <div class="funnel-row">
+        <div class="funnel-label">${s.label}</div>
+        <div class="funnel-bar-outer">
+          <div class="funnel-bar-inner" style="width:${w}%;background:${s.color}40;color:${s.color}">
+            ${s.count > 0 ? s.count : ''}
+          </div>
+        </div>
+        <div class="funnel-count">${s.count}</div>
+        <div class="funnel-pct">${pct}%</div>
+      </div>`;
+  }).join('');
+
+  // Animate bars after render
+  setTimeout(() => {
+    document.querySelectorAll('.funnel-bar-inner').forEach(b => {
+      b.style.width = b.style.width; // trigger reflow
+    });
+  }, 100);
+}
+
+// ── DEAL PERFORMANCE ───────────────────────────────────────
+function renderDealPerformance(leads) {
+  const dealColors = ['#e8006b','#4facfe','#f5c842','#00d68f','#a78bfa','#ff9f43'];
+  const dealMap = {};
+  leads.forEach(l => {
+    const name = shortDeal(l.deal);
+    if (!dealMap[name]) dealMap[name] = { total:0, called:0, interested:0, confirmed:0, notint:0, color: '' };
+    dealMap[name].total++;
+    const s = getStatus(l.id);
+    if (['Called','Interested','Confirmed','Not Interested'].includes(s)) dealMap[name].called++;
+    if (['Interested','Confirmed'].includes(s)) dealMap[name].interested++;
+    if (s === 'Confirmed') dealMap[name].confirmed++;
+    if (s === 'Not Interested') dealMap[name].notint++;
+  });
+
+  const tbody = document.getElementById('dealPerfBody');
+  const entries = Object.entries(dealMap).sort((a,b) => b[1].total - a[1].total);
+
+  tbody.innerHTML = entries.map(([name, d], i) => {
+    const color = dealColors[i % dealColors.length];
+    const conv  = d.total ? ((d.confirmed/d.total)*100).toFixed(1) : 0;
+    const convClass = conv >= 20 ? 'high' : conv >= 10 ? 'mid' : 'low';
+    const barPct = Math.min(100, Math.round(conv * 3));
+    return `
+      <tr>
+        <td>
+          <div class="deal-name-cell">
+            <span class="deal-color-dot" style="background:${color}"></span>
+            <div>
+              <div class="deal-product-name">${name}</div>
+            </div>
+          </div>
+        </td>
+        <td><strong>${d.total}</strong></td>
+        <td>${d.called}</td>
+        <td>${d.interested}</td>
+        <td><strong style="color:var(--green)">${d.confirmed}</strong></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">
+            <div class="conv-bar-wrap"><div class="conv-bar-fill" style="width:${barPct}%;background:${color}"></div></div>
+            <span class="pct-badge ${convClass}">${conv}%</span>
+          </div>
+        </td>
+        <td style="color:var(--red)">${d.notint}</td>
+      </tr>`;
+  }).join('');
+
+  if (!entries.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">No data for this period</td></tr>`;
+  }
+}
+
+// ── AGENT LEADERBOARD ──────────────────────────────────────
+function renderLeaderboard(leads) {
+  const agentMap = {};
+  leads.forEach(l => {
+    const agent = l.agent || 'Unknown';
+    if (!agentMap[agent]) agentMap[agent] = { total:0, confirmed:0, called:0 };
+    agentMap[agent].total++;
+    const s = getStatus(l.id);
+    if (s === 'Confirmed') agentMap[agent].confirmed++;
+    if (['Called','Interested','Confirmed','Not Interested'].includes(s)) agentMap[agent].called++;
+  });
+
+  const sorted = Object.entries(agentMap).sort((a,b) => b[1].confirmed - a[1].confirmed);
+  const colors = ['#e8006b','#4facfe','#f5c842','#a78bfa','#00d68f','#ff9f43'];
+  const rankClass = ['gold','silver','bronze'];
+  const medals = ['🥇','🥈','🥉'];
+
+  const list = document.getElementById('leaderList');
+  if (!sorted.length) {
+    list.innerHTML = `<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">No agent data yet</div>`;
+    return;
+  }
+
+  list.innerHTML = sorted.slice(0,6).map(([name, d], i) => {
+    const rate = d.total ? ((d.confirmed/d.total)*100).toFixed(0) : 0;
+    return `
+      <div class="leader-row">
+        <div class="leader-rank ${rankClass[i] || ''}">${medals[i] || i+1}</div>
+        <div class="leader-avatar" style="background:${colors[i%colors.length]}22;color:${colors[i%colors.length]};border:1.5px solid ${colors[i%colors.length]}44">
+          ${name.charAt(0).toUpperCase()}
+        </div>
+        <div class="leader-info">
+          <div class="leader-name">${name}</div>
+          <div class="leader-deals">${d.called} called · ${d.total} total</div>
+        </div>
+        <div class="leader-stats">
+          <div class="leader-confirmed">${d.confirmed}</div>
+          <div class="leader-rate">${rate}% rate</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── CITIES ─────────────────────────────────────────────────
+function renderCities(leads) {
+  const cityMap = {};
+  leads.forEach(l => { cityMap[l.city] = (cityMap[l.city]||0)+1; });
+  const sorted = Object.entries(cityMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const max    = sorted[0]?.[1] || 1;
+
+  document.getElementById('cityTotal').textContent = `${leads.length} total leads`;
+
+  const list = document.getElementById('cityList');
+  list.innerHTML = sorted.map(([city, count]) => `
+    <div class="city-row">
+      <div class="city-name">${city}</div>
+      <div class="city-bar-wrap">
+        <div class="city-bar-fill" style="width:${(count/max*100).toFixed(0)}%"></div>
+      </div>
+      <div class="city-count">${count}</div>
+    </div>`).join('');
+}
+
+// ── HOURLY HEATMAP ─────────────────────────────────────────
+function renderHeatmap(leads) {
+  // 7 days × 12 hours (8am–8pm)
+  const days  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const hours = [8,9,10,11,12,13,14,15,16,17,18,19];
+  const grid  = {};
+  days.forEach(d => { hours.forEach(h => { grid[`${d}-${h}`] = 0; }); });
+
+  leads.forEach(l => {
+    const d = new Date(l.timestamp);
+    if (isNaN(d)) return;
+    const day  = days[d.getDay()];
+    const hour = d.getHours();
+    if (hours.includes(hour)) grid[`${day}-${hour}`]++;
+  });
+
+  const maxVal = Math.max(...Object.values(grid), 1);
+
+  const container = document.getElementById('heatmapGrid');
+  container.innerHTML = '';
+
+  // Hour labels row
+  const hourRow = document.createElement('div');
+  hourRow.style.cssText = 'grid-column:1/-1;display:grid;grid-template-columns:40px repeat(12,1fr);gap:3px;margin-bottom:2px';
+  hourRow.innerHTML = `<div></div>` + hours.map(h => `
+    <div style="text-align:center;font-size:10px;color:var(--muted)">${h}h</div>`).join('');
+  container.appendChild(hourRow);
+
+  // Day rows
+  days.forEach(day => {
+    const label = document.createElement('div');
+    label.className = 'hm-label';
+    label.textContent = day;
+    container.appendChild(label);
+
+    hours.forEach(h => {
+      const val = grid[`${day}-${h}`] || 0;
+      const intensity = val / maxVal;
+      const cell = document.createElement('div');
+      cell.className = 'hm-cell';
+      cell.title = `${day} ${h}:00 — ${val} leads`;
+
+      const alpha = 0.08 + intensity * 0.9;
+      if (intensity === 0) {
+        cell.style.background = 'rgba(255,255,255,0.03)';
+      } else {
+        cell.style.background = `rgba(232,0,107,${alpha.toFixed(2)})`;
+        if (intensity > 0.6) cell.textContent = val;
+        cell.style.color = intensity > 0.5 ? '#fff' : 'transparent';
+      }
+      container.appendChild(cell);
+    });
+  });
+}
+
+// ── RECENT ACTIVITY ────────────────────────────────────────
+function renderActivity(leads) {
+  const statusColors = {
+    'New':'var(--blue)','Called':'var(--orange)',
+    'Interested':'var(--pink)','Confirmed':'var(--green)','Not Interested':'var(--red)'
+  };
+  const statusEmoji = {
+    'New':'🆕','Called':'📞','Interested':'🔥','Confirmed':'✅','Not Interested':'❌'
+  };
+
+  // Sort by timestamp desc, take 20
+  const recent = [...leads]
+    .filter(l => l.timestamp)
+    .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .slice(0, 20);
+
+  const list = document.getElementById('activityList');
+  list.innerHTML = recent.map(l => {
+    const status = getStatus(l.id);
+    const color  = statusColors[status] || 'var(--muted)';
+    const emoji  = statusEmoji[status] || '📋';
+    return `
+      <div class="activity-row">
+        <span class="activity-dot" style="background:${color}"></span>
+        <div class="activity-text">
+          ${emoji} <strong>${l.name}</strong> registered for
+          <span style="color:var(--pink)">${shortDeal(l.deal)}</span>
+          from ${l.city} · Status: <span style="color:${color};font-weight:600">${status}</span>
+        </div>
+        <div class="activity-time">${formatTime(l.timestamp)}</div>
+      </div>`;
+  }).join('');
+}
+
+// ── HELPERS ────────────────────────────────────────────────
+function shortDeal(deal) {
+  const parts = (deal||'').split('—');
+  return parts.length > 1 ? parts[1].trim() : deal;
+}
+function formatTime(ts) {
+  if (!ts) return '';
+  try {
+    const d = new Date(ts);
+    if (isNaN(d)) return ts;
+    return d.toLocaleString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+  } catch { return ts; }
+}
+
+// ── CONFIG ─────────────────────────────────────────────────
+function connectSheet() {
+  const url = document.getElementById('cfgInput').value.trim();
+  if (!url) { showToast('Please paste your CSV URL'); return; }
+  localStorage.setItem(SHEET_KEY, url);
+  document.getElementById('configBanner').classList.add('hidden');
+  loadAndRender();
+}
+function useDemoData() {
+  document.getElementById('configBanner').classList.add('hidden');
+  loadAndRender();
+}
+
+// ── CLOCK ──────────────────────────────────────────────────
+function updateClock() {
+  document.getElementById('clockBadge').textContent =
+    new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── TOAST ──────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ── WINDOW RESIZE — redraw chart ───────────────────────────
+window.addEventListener('resize', () => {
+  if (allLeads.length) renderDailyChart(filterByRange(allLeads));
+});
+
+// ── INIT ───────────────────────────────────────────────────
+const savedUrl = localStorage.getItem(SHEET_KEY);
+if (savedUrl) {
+  document.getElementById('cfgInput').value = savedUrl;
+  document.getElementById('configBanner').classList.add('hidden');
+}
+
+loadAndRender();
+// Auto-refresh every 3 minutes
+setInterval(loadAndRender, 3 * 60 * 1000);
+</script>
+</body>
+</html>

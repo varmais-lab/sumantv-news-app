@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suman TV — Call Center Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface2: #f0ede8;
+  --border: #e2ddd8;
+  --text: #1a1814;
+  --muted: #8a8278;
+  --pink: #e8006b;
+  --pink-light: #fff0f6;
+  --pink-border: #ffc8e0;
+  --green: #00a854;
+  --green-light: #f0fff7;
+  --green-border: #9aedc3;
+  --orange: #f07800;
+  --orange-light: #fff8f0;
+  --orange-border: #ffd4a0;
+  --blue: #0068e8;
+  --blue-light: #f0f6ff;
+  --blue-border: #a0c8ff;
+  --red: #d4000a;
+  --red-light: #fff0f0;
+  --red-border: #ffb0b4;
+  --shadow: 0 2px 12px rgba(26,24,20,0.08);
+  --shadow-lg: 0 8px 32px rgba(26,24,20,0.12);
+}
+
+html, body {
+  background: var(--bg);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── TOP NAV ── */
+.nav {
+  background: var(--text);
+  padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px; position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+}
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 800;
+  color: #fff; letter-spacing: -0.5px;
+  display: flex; align-items: center; gap: 10px;
+}
+.nav-logo .s-badge {
+  background: var(--pink);
+  color: #fff; font-size: 13px; font-weight: 800;
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.nav-tag {
+  font-size: 11px; font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase; color: rgba(255,255,255,0.4);
+}
+.refresh-nav-btn {
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.8); cursor: pointer; border-radius: 8px;
+  padding: 6px 14px; font-size: 12px; font-family: 'DM Sans', sans-serif;
+  font-weight: 600; display: flex; align-items: center; gap: 6px;
+  transition: all 0.2s;
+}
+.refresh-nav-btn:hover { background: rgba(255,255,255,0.18); color: #fff; }
+.refresh-nav-btn svg { width: 13px; height: 13px; }
+.refresh-nav-btn.spinning svg { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── CONFIG BAR ── */
+.config-bar {
+  background: var(--pink-light);
+  border-bottom: 1px solid var(--pink-border);
+  padding: 10px 28px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.config-bar.hidden { display: none; }
+.config-label { font-size: 12px; font-weight: 700; color: var(--pink); letter-spacing: 0.5px; }
+.config-input {
+  flex: 1; min-width: 280px; max-width: 520px;
+  padding: 7px 12px; border: 1px solid var(--pink-border);
+  border-radius: 8px; font-family: 'DM Mono', monospace;
+  font-size: 12px; color: var(--text); background: #fff; outline: none;
+}
+.config-input:focus { border-color: var(--pink); }
+.config-btn {
+  background: var(--pink); color: #fff; border: none;
+  border-radius: 8px; padding: 7px 18px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700;
+  transition: all 0.2s;
+}
+.config-btn:hover { background: #c8005e; }
+.config-dismiss {
+  font-size: 12px; color: var(--muted); cursor: pointer;
+  text-decoration: underline; margin-left: auto;
+}
+
+/* ── STATS ROW ── */
+.stats-row {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 14px; padding: 20px 28px 0;
+}
+@media (max-width: 900px) { .stats-row { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px) { .stats-row { grid-template-columns: repeat(2, 1fr); padding: 14px 16px 0; } }
+
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px 18px;
+  box-shadow: var(--shadow);
+  animation: fadeUp 0.4s ease both;
+}
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+.stat-card:nth-child(4) { animation-delay: 0.2s; }
+.stat-card:nth-child(5) { animation-delay: 0.25s; }
+@keyframes fadeUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
+
+.stat-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+}
+.stat-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px; font-weight: 800; line-height: 1; color: var(--text);
+}
+.stat-card.pink .stat-value { color: var(--pink); }
+.stat-card.green .stat-value { color: var(--green); }
+.stat-card.orange .stat-value { color: var(--orange); }
+.stat-card.blue .stat-value { color: var(--blue); }
+.stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* ── TOOLBAR ── */
+.toolbar {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 18px 28px 12px;
+}
+@media (max-width: 600px) { .toolbar { padding: 14px 16px 10px; } }
+
+.search-wrap {
+  position: relative; flex: 1; min-width: 200px; max-width: 320px;
+}
+.search-wrap svg {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 15px; height: 15px; color: var(--muted); pointer-events: none;
+}
+.search-input {
+  width: 100%; padding: 9px 12px 9px 36px;
+  border: 1px solid var(--border); border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  background: var(--surface); outline: none; transition: border 0.2s;
+}
+.search-input:focus { border-color: var(--pink); }
+
+.filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter-btn {
+  font-size: 12px; font-weight: 600; padding: 7px 14px;
+  border-radius: 20px; border: 1.5px solid var(--border);
+  background: var(--surface); cursor: pointer; color: var(--muted);
+  font-family: 'DM Sans', sans-serif; transition: all 0.18s;
+  display: flex; align-items: center; gap: 5px;
+}
+.filter-btn:hover { border-color: var(--text); color: var(--text); }
+.filter-btn.active { background: var(--text); color: #fff; border-color: var(--text); }
+.filter-btn.f-new.active    { background: var(--blue);   border-color: var(--blue); }
+.filter-btn.f-called.active { background: var(--orange); border-color: var(--orange); }
+.filter-btn.f-interested.active { background: var(--pink); border-color: var(--pink); }
+.filter-btn.f-confirmed.active  { background: var(--green); border-color: var(--green); }
+.filter-btn.f-notint.active { background: var(--red);  border-color: var(--red); }
+
+.filter-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+.sort-select {
+  padding: 8px 12px; border: 1.5px solid var(--border);
+  border-radius: 10px; font-family: 'DM Sans', sans-serif;
+  font-size: 13px; color: var(--text); background: var(--surface);
+  outline: none; cursor: pointer;
+}
+
+.export-btn {
+  margin-left: auto;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 8px 16px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+  color: var(--muted); display: flex; align-items: center; gap: 6px;
+  transition: all 0.2s;
+}
+.export-btn:hover { border-color: var(--green); color: var(--green); }
+.export-btn svg { width: 15px; height: 15px; }
+
+/* ── TABLE ── */
+.table-wrap {
+  padding: 0 28px 32px; overflow-x: auto;
+}
+@media (max-width: 600px) { .table-wrap { padding: 0 16px 24px; } }
+
+.table {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  background: var(--surface); border-radius: 16px;
+  border: 1px solid var(--border); overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.table thead tr { background: var(--surface2); }
+.table th {
+  padding: 12px 16px; text-align: left;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+  text-transform: uppercase; color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.table tbody tr {
+  transition: background 0.15s;
+  animation: fadeUp 0.3s ease both;
+}
+.table tbody tr:hover { background: var(--surface2); }
+.table tbody tr:not(:last-child) td { border-bottom: 1px solid var(--border); }
+.table td {
+  padding: 13px 16px; font-size: 14px; vertical-align: middle;
+}
+
+/* Lead number */
+.lead-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; color: var(--muted); font-weight: 500;
+}
+
+/* Name + time */
+.lead-name { font-weight: 600; color: var(--text); font-size: 14px; }
+.lead-time { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* Phone */
+.phone-cell {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.call-btn {
+  background: var(--green-light); border: 1px solid var(--green-border);
+  color: var(--green); border-radius: 6px; padding: 3px 8px;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+  text-decoration: none; white-space: nowrap;
+}
+.call-btn:hover { background: var(--green); color: #fff; }
+.wa-btn {
+  background: #e8f9ee; border: 1px solid #9aedc3;
+  color: #00a854; border-radius: 6px; padding: 3px 8px;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+  text-decoration: none; white-space: nowrap;
+}
+.wa-btn:hover { background: #25d366; color: #fff; border-color: #25d366; }
+
+/* Deal tag */
+.deal-tag {
+  font-size: 12px; font-weight: 600;
+  background: var(--pink-light); color: var(--pink);
+  border: 1px solid var(--pink-border);
+  padding: 3px 10px; border-radius: 20px;
+  display: inline-block; white-space: nowrap;
+  max-width: 180px; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* City */
+.city-cell { font-size: 13px; color: var(--muted); }
+
+/* Status badge */
+.status-wrap { position: relative; display: inline-block; }
+.status-badge {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.4px;
+  padding: 4px 12px; border-radius: 20px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+  border: 1.5px solid transparent; transition: all 0.15s;
+  white-space: nowrap; user-select: none;
+}
+.status-badge::after { content: ' ▾'; font-size: 9px; opacity: 0.6; }
+.status-new        { background: var(--blue-light);   color: var(--blue);   border-color: var(--blue-border); }
+.status-called     { background: var(--orange-light); color: var(--orange); border-color: var(--orange-border); }
+.status-interested { background: var(--pink-light);   color: var(--pink);   border-color: var(--pink-border); }
+.status-confirmed  { background: var(--green-light);  color: var(--green);  border-color: var(--green-border); }
+.status-notint     { background: var(--red-light);    color: var(--red);    border-color: var(--red-border); }
+
+/* Status dropdown */
+.status-menu {
+  position: absolute; top: calc(100% + 4px); left: 0; z-index: 50;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; box-shadow: var(--shadow-lg);
+  min-width: 170px; overflow: hidden; display: none;
+}
+.status-menu.open { display: block; }
+.status-opt {
+  padding: 9px 14px; font-size: 13px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+  transition: background 0.12s;
+}
+.status-opt:hover { background: var(--surface2); }
+.status-opt .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* Notes cell */
+.notes-input {
+  width: 100%; min-width: 140px; padding: 6px 10px;
+  border: 1px solid var(--border); border-radius: 8px;
+  font-family: 'DM Sans', sans-serif; font-size: 12px;
+  color: var(--text); background: transparent; resize: none;
+  outline: none; transition: border 0.15s; height: 36px;
+}
+.notes-input:focus { border-color: var(--pink); background: var(--surface); height: 60px; }
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 60px 20px; color: var(--muted);
+}
+.empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; line-height: 1.6; }
+.empty-state a { color: var(--pink); font-weight: 600; cursor: pointer; }
+
+/* Loading */
+.loading-row td {
+  text-align: center; padding: 40px;
+  color: var(--muted); font-size: 14px;
+}
+.spinner {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid var(--border); border-top-color: var(--pink);
+  animation: spin 0.8s linear infinite;
+  display: inline-block; vertical-align: middle; margin-right: 8px;
+}
+
+/* Deal filter tabs */
+.deal-tabs {
+  display: flex; gap: 8px; padding: 0 28px 14px; flex-wrap: wrap;
+}
+@media (max-width: 600px) { .deal-tabs { padding: 0 16px 12px; } }
+.deal-tab {
+  font-size: 12px; font-weight: 600; padding: 6px 14px;
+  border-radius: 20px; border: 1.5px solid var(--border);
+  background: var(--surface); cursor: pointer; color: var(--muted);
+  font-family: 'DM Sans', sans-serif; transition: all 0.18s;
+}
+.deal-tab:hover { border-color: var(--pink); color: var(--pink); }
+.deal-tab.active { background: var(--pink); color: #fff; border-color: var(--pink); }
+
+/* Pagination */
+.pagination {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px; border-top: 1px solid var(--border);
+  background: var(--surface2); border-radius: 0 0 16px 16px;
+}
+.pg-info { font-size: 13px; color: var(--muted); }
+.pg-btns { display: flex; gap: 6px; }
+.pg-btn {
+  width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); cursor: pointer; font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; color: var(--muted);
+}
+.pg-btn:hover { border-color: var(--text); color: var(--text); }
+.pg-btn.active { background: var(--text); color: #fff; border-color: var(--text); }
+.pg-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(10px);
+  z-index: 999; background: var(--text); color: #fff;
+  font-size: 13px; font-weight: 600; padding: 10px 22px; border-radius: 24px;
+  opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Highlight new */
+.row-new { background: #fffbf0 !important; }
+.row-confirmed { background: #f5fff9 !important; }
+
+@media (max-width: 768px) {
+  .table th:nth-child(1),
+  .table td:nth-child(1) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="s-badge">S</div>
+    Suman TV &nbsp;<span style="color:rgba(255,255,255,0.35);font-weight:400">·</span>&nbsp; Call Center
+  </div>
+  <div class="nav-right">
+    <span class="nav-tag" id="lastUpdated">Not loaded</span>
+    <button class="refresh-nav-btn" id="refreshBtn" onclick="loadLeads()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="23 4 23 10 17 10"/>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+      Refresh
+    </button>
+  </div>
+</nav>
+
+<!-- CONFIG BAR -->
+<div class="config-bar" id="configBar">
+  <span class="config-label">⚙ SHEET URL</span>
+  <input class="config-input" id="sheetUrlInput" type="text"
+    placeholder="Paste your Google Form Responses Sheet CSV URL here…">
+  <button class="config-btn" onclick="saveSheetUrl()">Connect</button>
+  <span class="config-dismiss" onclick="dismissConfig()">Use demo data →</span>
+</div>
+
+<!-- STATS -->
+<div class="stats-row" id="statsRow">
+  <div class="stat-card">
+    <div class="stat-label">Total Leads</div>
+    <div class="stat-value" id="statTotal">—</div>
+    <div class="stat-sub">All registrations</div>
+  </div>
+  <div class="stat-card blue">
+    <div class="stat-label">New / Uncalled</div>
+    <div class="stat-value" id="statNew">—</div>
+    <div class="stat-sub">Needs a call</div>
+  </div>
+  <div class="stat-card pink">
+    <div class="stat-label">Interested</div>
+    <div class="stat-value" id="statInterested">—</div>
+    <div class="stat-sub">Ready to buy</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-label">Confirmed</div>
+    <div class="stat-value" id="statConfirmed">—</div>
+    <div class="stat-sub">Deal closed ✓</div>
+  </div>
+  <div class="stat-card orange">
+    <div class="stat-label">Called</div>
+    <div class="stat-value" id="statCalled">—</div>
+    <div class="stat-sub">In progress</div>
+  </div>
+</div>
+
+<!-- DEAL FILTER TABS -->
+<div class="deal-tabs" id="dealTabs">
+  <div class="deal-tab active" data-deal="all" onclick="filterByDeal('all', this)">All Deals</div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input class="search-input" id="searchInput" type="text"
+      placeholder="Search name, phone, city…" oninput="applyFilters()">
+  </div>
+
+  <div class="filter-group">
+    <button class="filter-btn active" data-status="all" onclick="filterByStatus('all', this)">All</button>
+    <button class="filter-btn f-new" data-status="New" onclick="filterByStatus('New', this)">
+      <span class="filter-dot" style="background:#0068e8"></span>New
+    </button>
+    <button class="filter-btn f-called" data-status="Called" onclick="filterByStatus('Called', this)">
+      <span class="filter-dot" style="background:#f07800"></span>Called
+    </button>
+    <button class="filter-btn f-interested" data-status="Interested" onclick="filterByStatus('Interested', this)">
+      <span class="filter-dot" style="background:#e8006b"></span>Interested
+    </button>
+    <button class="filter-btn f-confirmed" data-status="Confirmed" onclick="filterByStatus('Confirmed', this)">
+      <span class="filter-dot" style="background:#00a854"></span>Confirmed
+    </button>
+    <button class="filter-btn f-notint" data-status="Not Interested" onclick="filterByStatus('Not Interested', this)">
+      <span class="filter-dot" style="background:#d4000a"></span>Not Interested
+    </button>
+  </div>
+
+  <select class="sort-select" id="sortSelect" onchange="applyFilters()">
+    <option value="newest">Newest First</option>
+    <option value="oldest">Oldest First</option>
+    <option value="name">Name A–Z</option>
+    <option value="status">By Status</option>
+  </select>
+
+  <button class="export-btn" onclick="exportCSV()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    Export CSV
+  </button>
+</div>
+
+<!-- TABLE -->
+<div class="table-wrap">
+  <table class="table" id="leadsTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Deal</th>
+        <th>City</th>
+        <th>Status</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <tr class="loading-row">
+        <td colspan="7"><span class="spinner"></span> Loading leads…</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG — paste your Google Form Responses Sheet CSV URL
+// File → Share → Publish to web → Sheet1 → CSV
+// ═══════════════════════════════════════════════════════════
+const STORAGE_KEY = 'suman_cc_sheet_url';
+const STATUS_KEY  = 'suman_cc_statuses';   // { rowId: status }
+const NOTES_KEY   = 'suman_cc_notes';      // { rowId: note }
+
+// ── DEMO DATA (used when no sheet connected) ──────────────
+const DEMO_LEADS = [
+  { id:'R001', timestamp:'2025-04-11 09:14', name:'Ravi Kumar', phone:'9885001234', city:'Hyderabad', deal:'DEAL001 — Royal Enfield Classic 350' },
+  { id:'R002', timestamp:'2025-04-11 09:22', name:'Sunita Devi', phone:'9908765432', city:'Vijayawada', deal:'DEAL002 — Apollo Full Body Checkup' },
+  { id:'R003', timestamp:'2025-04-11 09:45', name:'Anil Reddy', phone:'9963112233', city:'Vizag', deal:'DEAL001 — Royal Enfield Classic 350' },
+  { id:'R004', timestamp:'2025-04-11 10:02', name:'Lakshmi Prasad', phone:'9848556677', city:'Hyderabad', deal:'DEAL003 — B.Tech Admission 2025' },
+  { id:'R005', timestamp:'2025-04-11 10:18', name:'Venkat Rao', phone:'9701234567', city:'Tirupati', deal:'DEAL001 — Royal Enfield Classic 350' },
+  { id:'R006', timestamp:'2025-04-11 10:33', name:'Kavitha Sharma', phone:'9866998877', city:'Guntur', deal:'DEAL002 — Apollo Full Body Checkup' },
+  { id:'R007', timestamp:'2025-04-11 10:55', name:'Srikanth Babu', phone:'9912344321', city:'Nellore', deal:'DEAL001 — Royal Enfield Classic 350' },
+  { id:'R008', timestamp:'2025-04-11 11:10', name:'Padma Latha', phone:'9848112299', city:'Hyderabad', deal:'DEAL003 — B.Tech Admission 2025' },
+  { id:'R009', timestamp:'2025-04-11 11:28', name:'Mohan Krishna', phone:'9030556644', city:'Karimnagar', deal:'DEAL002 — Apollo Full Body Checkup' },
+  { id:'R010', timestamp:'2025-04-11 11:44', name:'Deepika Varma', phone:'9959123456', city:'Warangal', deal:'DEAL001 — Royal Enfield Classic 350' },
+  { id:'R011', timestamp:'2025-04-11 12:05', name:'Suresh Goud', phone:'9849001122', city:'Hyderabad', deal:'DEAL003 — B.Tech Admission 2025' },
+  { id:'R012', timestamp:'2025-04-11 12:22', name:'Annapurna Devi', phone:'9966778899', city:'Vizag', deal:'DEAL002 — Apollo Full Body Checkup' },
+];
+
+// ─────────────────────────────────────────────────────────
+let allLeads = [];
+let filteredLeads = [];
+let statusMap = {};
+let notesMap  = {};
+let currentStatusFilter = 'all';
+let currentDealFilter   = 'all';
+let currentPage = 1;
+const PAGE_SIZE = 20;
+
+// ── Load persisted state
+function loadState() {
+  try { statusMap = JSON.parse(localStorage.getItem(STATUS_KEY) || '{}'); } catch(e) { statusMap = {}; }
+  try { notesMap  = JSON.parse(localStorage.getItem(NOTES_KEY)  || '{}'); } catch(e) { notesMap  = {}; }
+}
+function saveStatus(id, val) {
+  statusMap[id] = val;
+  localStorage.setItem(STATUS_KEY, JSON.stringify(statusMap));
+}
+function saveNote(id, val) {
+  notesMap[id] = val;
+  localStorage.setItem(NOTES_KEY, JSON.stringify(notesMap));
+}
+function getStatus(id) { return statusMap[id] || 'New'; }
+function getNote(id)   { return notesMap[id]  || ''; }
+
+// ── Parse CSV from Google Sheets (Form responses)
+function parseResponseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.replace(/"/g,'').trim().toLowerCase());
+  return lines.slice(1).map((line, idx) => {
+    const fields = [];
+    let cur = '', inQ = false;
+    for (let ch of line) {
+      if (ch === '"') inQ = !inQ;
+      else if (ch === ',' && !inQ) { fields.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    fields.push(cur.trim());
+    const obj = { id: `R${String(idx+1).padStart(3,'0')}` };
+    headers.forEach((h, i) => { obj[h] = (fields[i]||'').replace(/^"|"$/g,''); });
+    // Normalize field names
+    obj.name      = obj['full name']      || obj['name']  || obj[headers[1]] || '—';
+    obj.phone     = obj['whatsapp number']|| obj['phone'] || obj[headers[2]] || '—';
+    obj.city      = obj['city']           || obj[headers[3]] || '—';
+    obj.deal      = obj['deal']           || obj[headers[4]] || '—';
+    obj.timestamp = obj['timestamp']      || obj[headers[0]] || '';
+    return obj;
+  }).filter(r => r.name && r.name !== '—');
+}
+
+// ── Fetch leads
+async function loadLeads() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+
+  const sheetUrl = localStorage.getItem(STORAGE_KEY);
+
+  if (!sheetUrl) {
+    // Use demo data
+    allLeads = DEMO_LEADS.map(d => ({ ...d }));
+    renderAll();
+    btn.classList.remove('spinning');
+    document.getElementById('lastUpdated').textContent = 'Demo data';
+    return;
+  }
+
+  try {
+    const resp = await fetch(sheetUrl);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const text = await resp.text();
+    allLeads = parseResponseCSV(text);
+    if (!allLeads.length) throw new Error('No leads found');
+    document.getElementById('lastUpdated').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+    document.getElementById('configBar').classList.add('hidden');
+    showToast(`✓ Loaded ${allLeads.length} leads`);
+  } catch(err) {
+    console.error(err);
+    allLeads = DEMO_LEADS.map(d => ({ ...d }));
+    showToast('⚠ Could not load sheet — showing demo data');
+    document.getElementById('lastUpdated').textContent = 'Connection failed';
+  }
+
+  renderAll();
+  btn.classList.remove('spinning');
+}
+
+function renderAll() {
+  buildDealTabs();
+  applyFilters();
+  updateStats();
+}
+
+// ── Deal tabs
+function buildDealTabs() {
+  const deals = [...new Set(allLeads.map(l => {
+    const parts = (l.deal || '').split('—');
+    return parts.length > 1 ? parts[1].trim() : l.deal;
+  }).filter(Boolean))];
+
+  const tabs = document.getElementById('dealTabs');
+  tabs.innerHTML = `<div class="deal-tab active" data-deal="all" onclick="filterByDeal('all', this)">All Deals</div>`;
+  deals.forEach(deal => {
+    const div = document.createElement('div');
+    div.className = 'deal-tab';
+    div.dataset.deal = deal;
+    div.textContent = deal;
+    div.onclick = function() { filterByDeal(deal, this); };
+    tabs.appendChild(div);
+  });
+}
+
+// ── Filters
+function filterByStatus(status, btn) {
+  currentStatusFilter = status;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPage = 1;
+  applyFilters();
+}
+
+function filterByDeal(deal, btn) {
+  currentDealFilter = deal;
+  document.querySelectorAll('.deal-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPage = 1;
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const sort = document.getElementById('sortSelect').value;
+
+  filteredLeads = allLeads.filter(lead => {
+    const status = getStatus(lead.id);
+    const statusOk = currentStatusFilter === 'all' || status === currentStatusFilter;
+    const dealOk = currentDealFilter === 'all' ||
+      (lead.deal || '').toLowerCase().includes(currentDealFilter.toLowerCase());
+    const searchOk = !q ||
+      (lead.name||'').toLowerCase().includes(q) ||
+      (lead.phone||'').includes(q) ||
+      (lead.city||'').toLowerCase().includes(q) ||
+      (lead.deal||'').toLowerCase().includes(q);
+    return statusOk && dealOk && searchOk;
+  });
+
+  // Sort
+  const statusOrder = { 'New':0, 'Called':1, 'Interested':2, 'Confirmed':3, 'Not Interested':4 };
+  filteredLeads.sort((a, b) => {
+    if (sort === 'newest')  return (b.timestamp||'').localeCompare(a.timestamp||'');
+    if (sort === 'oldest')  return (a.timestamp||'').localeCompare(b.timestamp||'');
+    if (sort === 'name')    return (a.name||'').localeCompare(b.name||'');
+    if (sort === 'status')  return (statusOrder[getStatus(a.id)]||0) - (statusOrder[getStatus(b.id)]||0);
+    return 0;
+  });
+
+  renderTable();
+  updateStats();
+}
+
+// ── Render table
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page  = filteredLeads.slice(start, start + PAGE_SIZE);
+
+  if (!filteredLeads.length) {
+    tbody.innerHTML = `
+      <tr><td colspan="7">
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <p>No leads match your filters.<br>
+          <a onclick="clearFilters()">Clear all filters</a> to see everything.</p>
+        </div>
+      </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = page.map((lead, i) => {
+    const status = getStatus(lead.id);
+    const note   = getNote(lead.id);
+    const rowClass = status === 'New' ? 'row-new' : status === 'Confirmed' ? 'row-confirmed' : '';
+    const wa = `https://wa.me/${(lead.phone||'').replace(/\D/g,'')}?text=${encodeURIComponent(`Hello ${lead.name} garu, nenu Suman TV nunchi matladutunna. Meeru ${lead.deal} kosam register chesaru — confirm cheyyadaniki call chesanu.`)}`;
+
+    return `
+    <tr class="${rowClass}" id="row-${lead.id}">
+      <td><span class="lead-num">${start + i + 1}</span></td>
+      <td>
+        <div class="lead-name">${lead.name}</div>
+        <div class="lead-time">${formatTime(lead.timestamp)}</div>
+      </td>
+      <td>
+        <div class="phone-cell">
+          <span>${lead.phone}</span>
+          <a class="call-btn" href="tel:${lead.phone}">📞 Call</a>
+          <a class="wa-btn" href="${wa}" target="_blank">WA</a>
+        </div>
+      </td>
+      <td><span class="deal-tag" title="${lead.deal}">${shortDeal(lead.deal)}</span></td>
+      <td><span class="city-cell">${lead.city}</span></td>
+      <td>
+        <div class="status-wrap" id="sw-${lead.id}">
+          <div class="status-badge ${statusClass(status)}"
+               onclick="toggleStatusMenu('${lead.id}')">${status}</div>
+          <div class="status-menu" id="sm-${lead.id}">
+            ${['New','Called','Interested','Confirmed','Not Interested'].map(s => `
+              <div class="status-opt" onclick="setStatus('${lead.id}','${s}')">
+                <span class="dot" style="background:${statusColor(s)}"></span>${s}
+              </div>`).join('')}
+          </div>
+        </div>
+      </td>
+      <td>
+        <textarea class="notes-input" id="note-${lead.id}"
+          placeholder="Add notes…"
+          onblur="saveNoteVal('${lead.id}')"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();saveNoteVal('${lead.id}');this.blur();}"
+        >${note}</textarea>
+      </td>
+    </tr>`;
+  }).join('');
+
+  renderPagination();
+}
+
+// ── Status helpers
+function statusClass(s) {
+  return { 'New':'status-new', 'Called':'status-called', 'Interested':'status-interested',
+           'Confirmed':'status-confirmed', 'Not Interested':'status-notint' }[s] || 'status-new';
+}
+function statusColor(s) {
+  return { 'New':'#0068e8','Called':'#f07800','Interested':'#e8006b',
+           'Confirmed':'#00a854','Not Interested':'#d4000a' }[s] || '#0068e8';
+}
+function toggleStatusMenu(id) {
+  document.querySelectorAll('.status-menu.open').forEach(m => {
+    if (m.id !== `sm-${id}`) m.classList.remove('open');
+  });
+  document.getElementById(`sm-${id}`)?.classList.toggle('open');
+}
+function setStatus(id, status) {
+  saveStatus(id, status);
+  document.getElementById(`sm-${id}`)?.classList.remove('open');
+  applyFilters();
+  updateStats();
+  showToast(`Status updated → ${status}`);
+}
+function saveNoteVal(id) {
+  const val = document.getElementById(`note-${id}`)?.value || '';
+  saveNote(id, val);
+}
+
+// Close menus on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.status-wrap')) {
+    document.querySelectorAll('.status-menu.open').forEach(m => m.classList.remove('open'));
+  }
+});
+
+// ── Stats
+function updateStats() {
+  const total = allLeads.length;
+  const counts = { New:0, Called:0, Interested:0, Confirmed:0, 'Not Interested':0 };
+  allLeads.forEach(l => { const s = getStatus(l.id); if (counts[s] !== undefined) counts[s]++; });
+  document.getElementById('statTotal').textContent     = total;
+  document.getElementById('statNew').textContent       = counts['New'];
+  document.getElementById('statInterested').textContent= counts['Interested'];
+  document.getElementById('statConfirmed').textContent = counts['Confirmed'];
+  document.getElementById('statCalled').textContent    = counts['Called'];
+}
+
+// ── Pagination
+function renderPagination() {
+  const total = filteredLeads.length;
+  const pages = Math.ceil(total / PAGE_SIZE);
+
+  let pg = document.getElementById('paginationRow');
+  if (!pg) {
+    const wrap = document.querySelector('.table-wrap');
+    pg = document.createElement('div');
+    pg.id = 'paginationRow';
+    pg.className = 'pagination';
+    wrap.appendChild(pg);
+  }
+  if (pages <= 1) { pg.style.display = 'none'; return; }
+  pg.style.display = 'flex';
+
+  const start = (currentPage - 1) * PAGE_SIZE + 1;
+  const end   = Math.min(currentPage * PAGE_SIZE, total);
+
+  pg.innerHTML = `
+    <span class="pg-info">Showing ${start}–${end} of ${total}</span>
+    <div class="pg-btns">
+      <button class="pg-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>
+      ${Array.from({length: Math.min(pages,7)}, (_,i) => {
+        const p = i+1;
+        return `<button class="pg-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+      }).join('')}
+      <button class="pg-btn" onclick="goPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>›</button>
+    </div>`;
+}
+function goPage(p) {
+  currentPage = p;
+  renderTable();
+  window.scrollTo({ top: 200, behavior: 'smooth' });
+}
+
+// ── Helpers
+function shortDeal(deal) {
+  const parts = (deal||'').split('—');
+  return parts.length > 1 ? parts[1].trim() : deal;
+}
+function formatTime(ts) {
+  if (!ts) return '';
+  try {
+    const d = new Date(ts);
+    if (isNaN(d)) return ts;
+    return d.toLocaleString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+  } catch { return ts; }
+}
+
+// ── Config
+function saveSheetUrl() {
+  const url = document.getElementById('sheetUrlInput').value.trim();
+  if (!url) { showToast('Please paste your CSV URL'); return; }
+  localStorage.setItem(STORAGE_KEY, url);
+  document.getElementById('configBar').classList.add('hidden');
+  loadLeads();
+}
+function dismissConfig() {
+  document.getElementById('configBar').classList.add('hidden');
+  loadLeads();
+}
+
+// ── Export CSV
+function exportCSV() {
+  const rows = [['#','Name','Phone','City','Deal','Status','Notes','Registered At']];
+  filteredLeads.forEach((l,i) => {
+    rows.push([
+      i+1, l.name, l.phone, l.city,
+      (l.deal||'').replace(/,/g,' '),
+      getStatus(l.id),
+      (getNote(l.id)||'').replace(/\n/g,' ').replace(/,/g,' '),
+      l.timestamp
+    ]);
+  });
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `suman-tv-leads-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast(`✓ Exported ${filteredLeads.length} leads`);
+}
+
+function clearFilters() {
+  currentStatusFilter = 'all';
+  currentDealFilter = 'all';
+  document.getElementById('searchInput').value = '';
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.filter-btn[data-status="all"]').classList.add('active');
+  document.querySelectorAll('.deal-tab').forEach(b => b.classList.remove('active'));
+  document.querySelector('.deal-tab[data-deal="all"]').classList.add('active');
+  currentPage = 1;
+  applyFilters();
+}
+
+// ── Toast
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ── Init
+loadState();
+
+// Check if sheet URL already saved
+const savedUrl = localStorage.getItem(STORAGE_KEY);
+if (savedUrl) {
+  document.getElementById('sheetUrlInput').value = savedUrl;
+  document.getElementById('configBar').classList.add('hidden');
+}
+
+loadLeads();
+
+// Auto-refresh every 2 minutes
+setInterval(loadLeads, 2 * 60 * 1000);
+</script>
+</body>
+</html>
