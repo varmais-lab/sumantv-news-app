@@ -7,6 +7,11 @@
       "source": "/sumanshortnews.html",
       "destination": "/",
       "permanent": true
+    },
+    {
+      "source": "/sumanshortnews",
+      "destination": "/",
+      "permanent": true
     }
   ],
   "headers": [
