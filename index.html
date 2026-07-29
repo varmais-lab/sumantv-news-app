@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="te">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080a0f">
+    <meta name="color-scheme" content="dark">
+    <meta
+      name="description"
+      content="SumanTV Shortsలో ధృవీకరించిన తెలుగు వార్తలను సంక్షిప్తంగా చదవండి."
+    >
+    <meta name="robots" content="index,follow,max-image-preview:large">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="te_IN">
+    <meta property="og:site_name" content="SumanTV Shorts">
+    <meta property="og:title" content="SumanTV Shorts — తెలుగు వార్తలు">
+    <meta
+      property="og:description"
+      content="ధృవీకరించిన తెలుగు వార్తలు. సంక్షిప్తంగా, స్పష్టంగా."
+    >
+    <meta property="og:url" content="https://sumantv-shorts.vercel.app/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SumanTV Shorts — తెలుగు వార్తలు">
+    <meta
+      name="twitter:description"
+      content="ధృవీకరించిన తెలుగు వార్తలు. సంక్షిప్తంగా, స్పష్టంగా."
+    >
+    <link rel="canonical" href="https://sumantv-shorts.vercel.app/">
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/assets/app.css">
+    <title>SumanTV Shorts — తెలుగు వార్తలు</title>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"SumanTV Shorts","url":"https://sumantv-shorts.vercel.app/","inLanguage":"te-IN","description":"ధృవీకరించిన తెలుగు వార్తలు. సంక్షిప్తంగా, స్పష్టంగా."}</script>
+    <script src="/assets/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#feed">వార్తలకు వెళ్లండి</a>
+
+    <header class="topbar" aria-label="ప్రధాన శీర్షిక">
+      <a class="brand" href="/" aria-label="SumanTV Shorts హోమ్">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span>SumanTV <strong>Shorts</strong></span>
+      </a>
+
+      <div class="topbar-actions">
+        <span class="category-pill" id="activeCategory">తాజా</span>
+        <button class="icon-button" id="refreshButton" type="button" aria-label="వార్తలను రిఫ్రెష్ చేయండి">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M20 11a8 8 0 1 0-2.34 5.66M20 4v7h-7"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="feed" class="feed" tabindex="-1" aria-busy="true">
+      <section class="state-panel loading-panel" id="loadingPanel" aria-live="polite">
+        <div class="loader" aria-hidden="true"></div>
+        <p>ధృవీకరించిన వార్తలను లోడ్ చేస్తున్నాం…</p>
+      </section>
+
+      <section class="state-panel empty-panel" id="emptyPanel" hidden>
+        <span class="state-icon" aria-hidden="true">✓</span>
+        <p class="eyebrow">ఎడిటోరియల్ ఫీడ్ సిద్ధమవుతోంది</p>
+        <h1>ధృవీకరించిన వార్తలు త్వరలో ఇక్కడ కనిపిస్తాయి.</h1>
+        <p>
+          పాత “లైవ్” డెమో కథనాలను మేము నిలిపివేశాం. కొత్త కథనం ప్రచురితమైన వెంటనే ఈ ఫీడ్‌లో
+          ఆటోమేటిక్‌గా కనిపిస్తుంది.
+        </p>
+        <button class="primary-button" id="emptyRefreshButton" type="button">మళ్లీ చూడండి</button>
+      </section>
+
+      <section class="state-panel error-panel" id="errorPanel" hidden role="alert">
+        <span class="state-icon error-icon" aria-hidden="true">!</span>
+        <p class="eyebrow">కనెక్షన్ సమస్య</p>
+        <h1>వార్తలను ప్రస్తుతం లోడ్ చేయలేకపోయాం.</h1>
+        <p>కొద్దిసేపటి తర్వాత మళ్లీ ప్రయత్నించండి. మీ వ్యక్తిగత సమాచారం ఏదీ సేకరించబడలేదు.</p>
+        <button class="primary-button" id="errorRetryButton" type="button">మళ్లీ ప్రయత్నించండి</button>
+      </section>
+
+      <section class="story-list" id="storyList" aria-label="వార్తల ఫీడ్"></section>
+      <div class="load-sentinel" id="loadSentinel" aria-hidden="true"></div>
+    </main>
+
+    <aside class="feed-status" aria-label="ఫీడ్ స్థితి">
+      <span id="storyCounter">0 / 0</span>
+      <span class="status-divider" aria-hidden="true"></span>
+      <span id="feedTimestamp">ప్రచురిత కథనాలు మాత్రమే</span>
+    </aside>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <noscript>
+      <div class="noscript-message">
+        SumanTV Shorts చూడటానికి JavaScript అవసరం. దయచేసి మీ బ్రౌజర్‌లో JavaScript ఆన్ చేయండి.
+      </div>
+    </noscript>
+  </body>
+</html>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sumantv-shorts.vercel.app/sitemap.xml
