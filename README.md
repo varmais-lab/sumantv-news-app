@@ -12,6 +12,11 @@ SumanTV Shorts is a mobile-first Telugu short-news feed backed by the existing
 - `/editor` is a secure, unlisted editorial desk for authenticated Supabase users.
 - Editors can create drafts, upload licensed images, and submit stories for review.
 - Admins can publish, schedule, revise, archive, and delete editorial content.
+- Content can be published as an article, an ordered image gallery, a YouTube Short,
+  or a YouTube long video.
+- YouTube posts store only a validated video ID and use privacy-enhanced embeds; video
+  files remain hosted on YouTube.
+- Gallery images support per-image Telugu descriptions, captions, and ordering.
 - Supabase Row Level Security enforces workflow roles independently of the browser UI.
 - Lead collection remains disabled until a rate-limited server-side endpoint is available.
 - Like and save choices remain local to the current browser.

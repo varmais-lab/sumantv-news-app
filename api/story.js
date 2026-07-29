@@ -50,6 +50,21 @@ function normalizeStory(row) {
     sourceUrl: safeHttpsUrl(row.source_url),
     imageUrl: safeHttpsUrl(row.image_url),
     imageAlt: cleanText(row.image_alt_te, title),
+    contentType: cleanText(row.content_type, "article"),
+    youtubeVideoId: /^[A-Za-z0-9_-]{11}$/.test(row.youtube_video_id || "")
+      ? row.youtube_video_id
+      : "",
+    media: Array.isArray(row.media)
+      ? row.media
+        .map((media) => ({
+          position: Number(media.position) || 0,
+          imageUrl: safeHttpsUrl(media.image_url),
+          imageAlt: cleanText(media.image_alt_te, title),
+          caption: cleanText(media.caption_te),
+        }))
+        .filter((media) => media.imageUrl)
+        .sort((a, b) => a.position - b.position)
+      : [],
     publishedAt: row.published_at,
     isBreaking: Boolean(row.is_breaking),
     isLive: Boolean(row.is_live),
@@ -72,9 +87,12 @@ async function fetchStory(slug) {
       "source_url",
       "image_url",
       "image_alt_te",
+      "content_type",
+      "youtube_video_id",
       "is_breaking",
       "is_live",
       "published_at",
+      "media:shorts_story_media(position,image_url,image_alt_te,caption_te)",
       "category:shorts_categories(name_te,name_en)",
     ].join(","),
   );
@@ -109,10 +127,37 @@ function renderSource(story) {
   return `<a class="story-source" href="${escapeHtml(story.sourceUrl)}" target="_blank" rel="noopener noreferrer nofollow">${escapeHtml(story.sourceName)}</a>`;
 }
 
-function renderStoryCard(story) {
-  const image = story.imageUrl
+function renderStoryMedia(story) {
+  if (story.youtubeVideoId) {
+    const shortClass = story.contentType === "youtube_short" ? " is-short" : "";
+    return `<div class="youtube-media${shortClass}">
+      <iframe
+        src="https://www.youtube-nocookie.com/embed/${escapeHtml(story.youtubeVideoId)}"
+        title="${escapeHtml(story.title)}"
+        loading="eager"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allowfullscreen
+      ></iframe>
+    </div>`;
+  }
+
+  if (story.contentType === "gallery" && story.media.length) {
+    const slides = story.media.map((media, index) => `<figure class="gallery-slide">
+      <img src="${escapeHtml(media.imageUrl)}" alt="${escapeHtml(media.imageAlt)}" decoding="async" referrerpolicy="no-referrer">
+      <span class="gallery-counter">${index + 1} / ${story.media.length}</span>
+      ${media.caption ? `<figcaption>${escapeHtml(media.caption)}</figcaption>` : ""}
+    </figure>`).join("");
+    return `<div class="story-gallery" aria-label="${escapeHtml(story.title)} gallery">${slides}</div>`;
+  }
+
+  return story.imageUrl
     ? `<img class="story-media" src="${escapeHtml(story.imageUrl)}" alt="${escapeHtml(story.imageAlt)}" decoding="async" fetchpriority="high" referrerpolicy="no-referrer">`
     : "";
+}
+
+function renderStoryCard(story) {
+  const media = renderStoryMedia(story);
   const date = Date.parse(story.publishedAt);
   const time = Number.isFinite(date)
     ? `<time class="story-time" datetime="${escapeHtml(new Date(date).toISOString())}">${escapeHtml(
@@ -128,7 +173,7 @@ function renderStoryCard(story) {
     : "";
 
   return `<article class="story-card" aria-labelledby="story-title-${escapeHtml(story.id)}">
-    ${image}
+    ${media}
     <div class="story-content">
       <div class="story-meta">${renderBadges(story)}${renderSource(story)}${time}</div>
       <h1 class="story-title" id="story-title-${escapeHtml(story.id)}">${escapeHtml(story.title)}</h1>

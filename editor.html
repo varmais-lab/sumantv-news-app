@@ -119,6 +119,16 @@
 
             <div class="form-grid two-columns">
               <div class="field span-two">
+                <label for="contentType">Content type <span aria-hidden="true">*</span></label>
+                <select id="contentType" name="contentType" required>
+                  <option value="article">Article</option>
+                  <option value="gallery">Movies / Celebrity gallery</option>
+                  <option value="youtube_short">YouTube Short</option>
+                  <option value="youtube_video">YouTube long video</option>
+                </select>
+              </div>
+
+              <div class="field span-two">
                 <label for="titleTe">Telugu headline <span aria-hidden="true">*</span></label>
                 <input id="titleTe" name="titleTe" type="text" maxlength="220" required>
                 <small><span id="titleCount">0</span> / 220</small>
@@ -201,6 +211,39 @@
               <div class="field span-two">
                 <label for="imageAltTe">Image description in Telugu</label>
                 <input id="imageAltTe" name="imageAltTe" type="text" maxlength="300">
+              </div>
+
+              <div class="field span-two" id="youtubeFields" hidden>
+                <label for="youtubeUrl">YouTube URL <span aria-hidden="true">*</span></label>
+                <input
+                  id="youtubeUrl"
+                  name="youtubeUrl"
+                  type="url"
+                  inputmode="url"
+                  placeholder="https://www.youtube.com/watch?v=... or https://youtube.com/shorts/..."
+                >
+                <small id="youtubeHelp">Paste a public YouTube URL. The video remains hosted on YouTube.</small>
+                <div class="youtube-preview" id="youtubePreview" hidden>
+                  <iframe
+                    id="youtubePreviewFrame"
+                    title="YouTube preview"
+                    loading="lazy"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen
+                  ></iframe>
+                </div>
+              </div>
+
+              <div class="field span-two" id="galleryFields" hidden>
+                <label for="galleryFiles">Gallery images</label>
+                <input
+                  id="galleryFiles"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/avif"
+                  multiple
+                >
+                <small>Upload 2–10 images. For Movies/Celebrity galleries, 4–5 is recommended.</small>
+                <div class="gallery-editor" id="galleryEditor" aria-live="polite"></div>
               </div>
 
               <div class="field">

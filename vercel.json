@@ -43,7 +43,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'sha256-XeYOekA8jmpKHKGk37B4ya3u+ofNN49hZRqtOmt31a0='; style-src 'self'; img-src 'self' https: data:; connect-src 'self' https://njxwfgcayotvjmozhlab.supabase.co; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self' 'sha256-XeYOekA8jmpKHKGk37B4ya3u+ofNN49hZRqtOmt31a0='; style-src 'self'; img-src 'self' https: data:; connect-src 'self' https://njxwfgcayotvjmozhlab.supabase.co; frame-src https://www.youtube-nocookie.com; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
         },
         {
           "key": "Referrer-Policy",

@@ -117,9 +117,12 @@ function buildFeedUrl() {
       "source_url",
       "image_url",
       "image_alt_te",
+      "content_type",
+      "youtube_video_id",
       "is_breaking",
       "is_live",
       "published_at",
+      "media:shorts_story_media(position,image_url,image_alt_te,caption_te)",
       "category:shorts_categories(slug,name_te,name_en,color)",
     ].join(","),
   );
@@ -169,6 +172,21 @@ function normalizeStory(row) {
     summary,
     imageUrl: safeHttpsUrl(row.image_url),
     imageAlt: cleanText(row.image_alt_te, title),
+    contentType: cleanText(row.content_type, "article"),
+    youtubeVideoId: /^[A-Za-z0-9_-]{11}$/.test(row.youtube_video_id || "")
+      ? row.youtube_video_id
+      : "",
+    media: Array.isArray(row.media)
+      ? row.media
+        .map((media) => ({
+          position: Number(media.position) || 0,
+          imageUrl: safeHttpsUrl(media.image_url),
+          imageAlt: cleanText(media.image_alt_te, title),
+          caption: cleanText(media.caption_te),
+        }))
+        .filter((media) => media.imageUrl)
+        .sort((a, b) => a.position - b.position)
+      : [],
     sourceName: cleanText(row.source_name, "SumanTV"),
     sourceUrl: safeHttpsUrl(row.source_url),
     publishedAt: row.published_at,
@@ -232,7 +250,44 @@ function makeStoryCard(story, index) {
   article.dataset.categorySlug = story.category.slug;
   article.setAttribute("aria-labelledby", `story-title-${story.id}`);
 
-  if (story.imageUrl) {
+  if (story.youtubeVideoId) {
+    const media = makeElement(
+      "div",
+      `youtube-media${story.contentType === "youtube_short" ? " is-short" : ""}`,
+    );
+    const iframe = makeElement("iframe");
+    iframe.src =
+      `https://www.youtube-nocookie.com/embed/${encodeURIComponent(story.youtubeVideoId)}`;
+    iframe.title = story.title;
+    iframe.loading = index < 1 ? "eager" : "lazy";
+    iframe.allow =
+      "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+    iframe.referrerPolicy = "strict-origin-when-cross-origin";
+    iframe.setAttribute("allowfullscreen", "");
+    media.append(iframe);
+    article.append(media);
+  } else if (story.contentType === "gallery" && story.media.length) {
+    const gallery = makeElement("div", "story-gallery");
+    gallery.setAttribute("aria-label", `${story.title} gallery`);
+    story.media.forEach((media, mediaIndex) => {
+      const figure = makeElement("figure", "gallery-slide");
+      const image = makeElement("img");
+      image.src = media.imageUrl;
+      image.alt = media.imageAlt;
+      image.loading = index === 0 && mediaIndex === 0 ? "eager" : "lazy";
+      image.decoding = "async";
+      image.referrerPolicy = "no-referrer";
+      const counter = makeElement(
+        "span",
+        "gallery-counter",
+        `${mediaIndex + 1} / ${story.media.length}`,
+      );
+      figure.append(image, counter);
+      if (media.caption) figure.append(makeElement("figcaption", "", media.caption));
+      gallery.append(figure);
+    });
+    article.append(gallery);
+  } else if (story.imageUrl) {
     const image = makeElement("img", "story-media");
     image.src = story.imageUrl;
     image.alt = story.imageAlt;

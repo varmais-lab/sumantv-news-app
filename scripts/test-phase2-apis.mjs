@@ -72,6 +72,60 @@ try {
     assert.match(storyResponse.body, new RegExp(`id="${id}"`));
   });
 
+  const videoPage = storyHandler.renderStoryPage({
+    id: 8,
+    slug: "youtube-short",
+    title: "YouTube Short",
+    summary: "A verified short video.",
+    sourceName: "SumanTV",
+    sourceUrl: "https://youtube.com/shorts/dQw4w9WgXcQ",
+    imageUrl: "",
+    imageAlt: "YouTube Short",
+    contentType: "youtube_short",
+    youtubeVideoId: "dQw4w9WgXcQ",
+    media: [],
+    publishedAt: "2026-07-29T05:00:00.000Z",
+    isBreaking: false,
+    isLive: false,
+    category: "వినోదం",
+  });
+  assert.match(videoPage, /youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/);
+  assert.match(videoPage, /youtube-media is-short/);
+
+  const galleryPage = storyHandler.renderStoryPage({
+    id: 9,
+    slug: "movie-gallery",
+    title: "Movie Gallery",
+    summary: "A verified image gallery.",
+    sourceName: "SumanTV",
+    sourceUrl: "",
+    imageUrl: "",
+    imageAlt: "Movie Gallery",
+    contentType: "gallery",
+    youtubeVideoId: "",
+    media: [
+      {
+        position: 1,
+        imageUrl: "https://example.com/one.jpg",
+        imageAlt: "చిత్రం ఒకటి",
+        caption: 'Caption <script>alert("x")</script>',
+      },
+      {
+        position: 2,
+        imageUrl: "https://example.com/two.jpg",
+        imageAlt: "చిత్రం రెండు",
+        caption: "",
+      },
+    ],
+    publishedAt: "2026-07-29T05:00:00.000Z",
+    isBreaking: false,
+    isLive: false,
+    category: "సినిమాలు",
+  });
+  assert.match(galleryPage, /1 \/ 2/);
+  assert.match(galleryPage, /Caption &lt;script&gt;alert\(&quot;x&quot;\)&lt;\/script&gt;/);
+  assert.doesNotMatch(galleryPage, /<script>alert/);
+
   const invalidResponse = mockResponse();
   await storyHandler({ method: "GET", query: { slug: "../draft" } }, invalidResponse);
   assert.equal(invalidResponse.statusCode, 404);
@@ -84,7 +138,7 @@ try {
   assert.match(sitemap, /2026-07-29T05:00:00\.000Z/);
   assert.doesNotMatch(sitemap, /unsafe&amp;story/);
 
-  console.log("Phase 2 API tests passed.");
+  console.log("Phase 3 API tests passed.");
 } finally {
   global.fetch = originalFetch;
 }
