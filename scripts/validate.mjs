@@ -146,6 +146,14 @@ const assertions = [
   [editorApp.includes("youtubeVideoId"), "the editor must validate YouTube URLs"],
   [editorApp.includes("uploadGalleryImages"), "the editor must upload gallery images"],
   [app.includes("youtube-nocookie.com/embed"), "the public feed must use privacy-enhanced YouTube embeds"],
+  [
+    app.includes("pauseInactiveYoutubePlayers(visible.target)"),
+    "the public feed must pause YouTube players outside the active story",
+  ],
+  [
+    app.includes('"pauseVideo"') && app.includes("enablejsapi=1"),
+    "YouTube embeds must enable the player API and receive pause commands",
+  ],
   [vercelText.includes("frame-src https://www.youtube-nocookie.com"), "CSP must allow only the YouTube embed origin"],
 ];
 
