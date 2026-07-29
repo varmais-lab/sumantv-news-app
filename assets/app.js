@@ -242,6 +242,23 @@ function makeActionButton(label, pressed, handler) {
   return button;
 }
 
+function pauseYoutubePlayer(iframe) {
+  iframe.contentWindow?.postMessage(
+    JSON.stringify({
+      event: "command",
+      func: "pauseVideo",
+      args: [],
+    }),
+    "https://www.youtube-nocookie.com",
+  );
+}
+
+function pauseInactiveYoutubePlayers(activeCard = null) {
+  elements.storyList.querySelectorAll(".youtube-media iframe").forEach((iframe) => {
+    if (!activeCard || !activeCard.contains(iframe)) pauseYoutubePlayer(iframe);
+  });
+}
+
 function makeStoryCard(story, index) {
   const article = makeElement("article", "story-card");
   article.id = `story-${story.id}`;
@@ -257,7 +274,7 @@ function makeStoryCard(story, index) {
     );
     const iframe = makeElement("iframe");
     iframe.src =
-      `https://www.youtube-nocookie.com/embed/${encodeURIComponent(story.youtubeVideoId)}`;
+      `https://www.youtube-nocookie.com/embed/${encodeURIComponent(story.youtubeVideoId)}?enablejsapi=1&playsinline=1`;
     iframe.title = story.title;
     iframe.loading = index < 1 ? "eager" : "lazy";
     iframe.allow =
@@ -428,6 +445,7 @@ function observeCards() {
 
       const index = Number(visible.target.dataset.index);
       state.activeIndex = index;
+      pauseInactiveYoutubePlayers(visible.target);
       elements.activeCategory.textContent = visible.target.dataset.category || "తాజా";
       elements.storyCounter.textContent = `${index + 1} / ${state.stories.length}`;
     },
@@ -517,5 +535,9 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "ArrowDown" || event.key.toLowerCase() === "j") moveToStory(1);
   if (event.key === "ArrowUp" || event.key.toLowerCase() === "k") moveToStory(-1);
 });
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) pauseInactiveYoutubePlayers();
+});
+window.addEventListener("pagehide", () => pauseInactiveYoutubePlayers());
 
 loadStories();
