@@ -18,6 +18,7 @@ const state = {
   categories: [],
   stories: [],
   selectedStory: null,
+  galleryMedia: [],
   toastTimer: null,
   busy: false,
 };
@@ -44,6 +45,7 @@ const elements = {
   publishedCount: document.querySelector("#publishedCount"),
   storyForm: document.querySelector("#storyForm"),
   storyId: document.querySelector("#storyId"),
+  contentType: document.querySelector("#contentType"),
   titleTe: document.querySelector("#titleTe"),
   summaryTe: document.querySelector("#summaryTe"),
   titleEn: document.querySelector("#titleEn"),
@@ -54,6 +56,14 @@ const elements = {
   imageUrl: document.querySelector("#imageUrl"),
   imageFile: document.querySelector("#imageFile"),
   imageAltTe: document.querySelector("#imageAltTe"),
+  youtubeFields: document.querySelector("#youtubeFields"),
+  youtubeUrl: document.querySelector("#youtubeUrl"),
+  youtubeHelp: document.querySelector("#youtubeHelp"),
+  youtubePreview: document.querySelector("#youtubePreview"),
+  youtubePreviewFrame: document.querySelector("#youtubePreviewFrame"),
+  galleryFields: document.querySelector("#galleryFields"),
+  galleryFiles: document.querySelector("#galleryFiles"),
+  galleryEditor: document.querySelector("#galleryEditor"),
   publishAt: document.querySelector("#publishAt"),
   isBreaking: document.querySelector("#isBreaking"),
   isLive: document.querySelector("#isLive"),
@@ -303,6 +313,8 @@ function storiesUrl() {
       "source_url",
       "image_url",
       "image_alt_te",
+      "content_type",
+      "youtube_video_id",
       "status",
       "is_breaking",
       "is_live",
@@ -311,6 +323,7 @@ function storiesUrl() {
       "updated_at",
       "reviewed_at",
       "version",
+      "media:shorts_story_media(id,position,image_url,image_alt_te,caption_te)",
       "category:shorts_categories(slug,name_te,name_en,color)",
     ].join(","),
   );
@@ -472,11 +485,114 @@ function updateCounters() {
   elements.summaryCount.textContent = String(elements.summaryTe.value.length);
 }
 
+function youtubeVideoId(value) {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase().replace(/^www\./, "");
+    let id = "";
+    if (host === "youtu.be") id = url.pathname.split("/").filter(Boolean)[0] || "";
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      if (url.pathname === "/watch") id = url.searchParams.get("v") || "";
+      if (url.pathname.startsWith("/shorts/") || url.pathname.startsWith("/embed/")) {
+        id = url.pathname.split("/").filter(Boolean)[1] || "";
+      }
+    }
+    return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : "";
+  } catch {
+    return "";
+  }
+}
+
+function youtubeUrlFromId(id, type) {
+  if (!id) return "";
+  return type === "youtube_short"
+    ? `https://www.youtube.com/shorts/${id}`
+    : `https://www.youtube.com/watch?v=${id}`;
+}
+
+function updateContentTypeFields() {
+  const type = elements.contentType.value;
+  const isYoutube = type === "youtube_short" || type === "youtube_video";
+  elements.youtubeFields.hidden = !isYoutube;
+  elements.galleryFields.hidden = type !== "gallery";
+  elements.youtubeUrl.required = isYoutube;
+  elements.youtubePreview.classList.toggle("is-short", type === "youtube_short");
+
+  const id = youtubeVideoId(elements.youtubeUrl.value.trim());
+  elements.youtubePreview.hidden = !isYoutube || !id;
+  if (!isYoutube || !id) {
+    elements.youtubePreviewFrame.removeAttribute("src");
+  } else {
+    elements.youtubePreviewFrame.src =
+      `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}`;
+  }
+}
+
+function renderGalleryEditor() {
+  elements.galleryEditor.replaceChildren();
+  state.galleryMedia
+    .sort((a, b) => a.position - b.position)
+    .forEach((media, index) => {
+      media.position = index + 1;
+      const card = makeElement("article", "gallery-editor-card");
+      const image = makeElement("img");
+      image.src = media.image_url;
+      image.alt = media.image_alt_te || `Gallery image ${index + 1}`;
+      const fields = makeElement("div", "gallery-editor-fields");
+      const caption = document.createElement("input");
+      caption.type = "text";
+      caption.maxLength = 300;
+      caption.placeholder = `Caption for image ${index + 1}`;
+      caption.value = media.caption_te || "";
+      caption.addEventListener("input", () => {
+        media.caption_te = caption.value.trim();
+      });
+      const alt = document.createElement("input");
+      alt.type = "text";
+      alt.maxLength = 300;
+      alt.placeholder = "Telugu image description";
+      alt.value = media.image_alt_te || "";
+      alt.addEventListener("input", () => {
+        media.image_alt_te = alt.value.trim();
+      });
+      const actions = makeElement("div", "gallery-editor-actions");
+      const up = makeElement("button", "ghost-button compact", "↑");
+      up.type = "button";
+      up.disabled = index === 0;
+      up.addEventListener("click", () => {
+        [state.galleryMedia[index - 1], state.galleryMedia[index]] =
+          [state.galleryMedia[index], state.galleryMedia[index - 1]];
+        renderGalleryEditor();
+      });
+      const down = makeElement("button", "ghost-button compact", "↓");
+      down.type = "button";
+      down.disabled = index === state.galleryMedia.length - 1;
+      down.addEventListener("click", () => {
+        [state.galleryMedia[index + 1], state.galleryMedia[index]] =
+          [state.galleryMedia[index], state.galleryMedia[index + 1]];
+        renderGalleryEditor();
+      });
+      const remove = makeElement("button", "danger-button compact", "Remove");
+      remove.type = "button";
+      remove.addEventListener("click", () => {
+        state.galleryMedia.splice(index, 1);
+        renderGalleryEditor();
+      });
+      actions.append(up, down, remove);
+      fields.append(caption, alt, actions);
+      card.append(image, fields);
+      elements.galleryEditor.append(card);
+    });
+}
+
 function resetStoryForm() {
   state.selectedStory = null;
+  state.galleryMedia = [];
   elements.storyForm.reset();
   elements.storyId.value = "";
   elements.sourceName.value = "SumanTV";
+  elements.contentType.value = "article";
   elements.formEyebrow.textContent = "New story";
   elements.formTitle.textContent = "Create a verified short";
   elements.currentStatus.textContent = "Unsaved";
@@ -484,6 +600,8 @@ function resetStoryForm() {
   elements.previewLink.hidden = true;
   elements.imagePreview.hidden = true;
   elements.imagePreviewElement.removeAttribute("src");
+  renderGalleryEditor();
+  updateContentTypeFields();
   setFormMessage(elements.editorMessage);
   updateCounters();
   updateWorkflowControls();
@@ -493,6 +611,9 @@ function resetStoryForm() {
 
 function selectStory(story) {
   state.selectedStory = story;
+  state.galleryMedia = Array.isArray(story.media)
+    ? story.media.map((media) => ({ ...media }))
+    : [];
   elements.storyId.value = String(story.id);
   elements.titleTe.value = story.title_te || "";
   elements.summaryTe.value = story.summary_te || "";
@@ -503,6 +624,9 @@ function selectStory(story) {
   elements.sourceUrl.value = story.source_url || "";
   elements.imageUrl.value = story.image_url || "";
   elements.imageAltTe.value = story.image_alt_te || "";
+  elements.contentType.value = story.content_type || "article";
+  elements.youtubeUrl.value =
+    youtubeUrlFromId(story.youtube_video_id, story.content_type || "article");
   elements.publishAt.value = formatLocalDateTime(story.published_at);
   elements.isBreaking.checked = Boolean(story.is_breaking);
   elements.isLive.checked = Boolean(story.is_live);
@@ -515,6 +639,8 @@ function selectStory(story) {
   setFormMessage(elements.editorMessage);
   updateCounters();
   updateImagePreview();
+  renderGalleryEditor();
+  updateContentTypeFields();
   updateWorkflowControls();
   renderQueue();
 }
@@ -581,6 +707,18 @@ function storyPayload(targetStatus) {
   }
 
   const isPublishing = targetStatus === "published";
+  const contentType = elements.contentType.value;
+  const isYoutube = contentType === "youtube_short" || contentType === "youtube_video";
+  const videoId = isYoutube ? youtubeVideoId(elements.youtubeUrl.value.trim()) : "";
+  if (isYoutube && !videoId) {
+    throw new Error("Paste a valid public YouTube video or Shorts URL.");
+  }
+  if (contentType === "gallery" && state.galleryMedia.length < 2) {
+    throw new Error("A gallery needs at least 2 images.");
+  }
+  if (state.galleryMedia.length > 10) {
+    throw new Error("A gallery can contain a maximum of 10 images.");
+  }
   let publishedAt = null;
   if (isPublishing) {
     publishedAt = elements.publishAt.value
@@ -601,11 +739,37 @@ function storyPayload(targetStatus) {
     source_url: validateHttpsField(elements.sourceUrl, "Source URL"),
     image_url: validateHttpsField(elements.imageUrl, "Image URL"),
     image_alt_te: elements.imageAltTe.value.trim() || null,
+    content_type: contentType,
+    youtube_video_id: videoId || null,
     status: targetStatus,
     is_breaking: elements.isBreaking.checked,
     is_live: isPublishing && elements.isLive.checked,
     published_at: publishedAt,
   };
+}
+
+async function saveGalleryMedia(storyId, contentType) {
+  await dataRequest(`/rest/v1/shorts_story_media?story_id=eq.${encodeURIComponent(storyId)}`, {
+    method: "DELETE",
+    headers: { Prefer: "return=minimal" },
+  });
+
+  if (contentType !== "gallery" || !state.galleryMedia.length) return;
+  const payload = state.galleryMedia.map((media, index) => ({
+    story_id: storyId,
+    position: index + 1,
+    image_url: media.image_url,
+    image_alt_te: media.image_alt_te || null,
+    caption_te: media.caption_te || null,
+  }));
+  await dataRequest("/rest/v1/shorts_story_media", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Prefer: "return=minimal",
+    },
+    body: JSON.stringify(payload),
+  });
 }
 
 async function saveStory(targetStatus) {
@@ -635,6 +799,7 @@ async function saveStory(targetStatus) {
     });
 
     const saved = Array.isArray(rows) ? rows[0] : null;
+    if (saved?.id) await saveGalleryMedia(saved.id, payload.content_type);
     await loadEditorialData();
     if (saved?.id) {
       const refreshed = state.stories.find((story) => story.id === saved.id);
@@ -709,6 +874,60 @@ async function uploadImage(file) {
   }
 }
 
+async function uploadGalleryImages(files) {
+  const selected = Array.from(files || []);
+  if (!selected.length) return;
+  if (state.galleryMedia.length + selected.length > 10) {
+    setFormMessage(elements.editorMessage, "A gallery can contain a maximum of 10 images.");
+    elements.galleryFiles.value = "";
+    return;
+  }
+
+  setBusy(true);
+  setFormMessage(elements.editorMessage);
+  try {
+    for (const file of selected) {
+      if (!EDITOR_CONFIG.allowedImageTypes.has(file.type)) {
+        throw new Error("Choose only JPG, PNG, WebP or AVIF images.");
+      }
+      if (file.size > EDITOR_CONFIG.maxImageBytes) {
+        throw new Error(`${file.name} must be 5 MB or smaller.`);
+      }
+      const extension = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "image/avif": "avif",
+      }[file.type];
+      const objectPath =
+        `galleries/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${extension}`;
+      const encodedPath = objectPath.split("/").map(encodeURIComponent).join("/");
+      await dataRequest(`/storage/v1/object/${EDITOR_CONFIG.imageBucket}/${encodedPath}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": file.type,
+          "x-upsert": "false",
+        },
+        body: file,
+      });
+      state.galleryMedia.push({
+        position: state.galleryMedia.length + 1,
+        image_url:
+          `${EDITOR_CONFIG.supabaseUrl}/storage/v1/object/public/${EDITOR_CONFIG.imageBucket}/${encodedPath}`,
+        image_alt_te: elements.titleTe.value.trim(),
+        caption_te: "",
+      });
+    }
+    renderGalleryEditor();
+    showToast(`${selected.length} gallery image${selected.length === 1 ? "" : "s"} uploaded`);
+  } catch (error) {
+    setFormMessage(elements.editorMessage, error.message || "Unable to upload gallery images.");
+  } finally {
+    elements.galleryFiles.value = "";
+    setBusy(false);
+  }
+}
+
 elements.loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (state.busy) return;
@@ -758,6 +977,9 @@ elements.summaryTe.addEventListener("input", updateCounters);
 elements.imageUrl.addEventListener("input", updateImagePreview);
 elements.imageAltTe.addEventListener("input", updateImagePreview);
 elements.imageFile.addEventListener("change", () => uploadImage(elements.imageFile.files?.[0]));
+elements.contentType.addEventListener("change", updateContentTypeFields);
+elements.youtubeUrl.addEventListener("input", updateContentTypeFields);
+elements.galleryFiles.addEventListener("change", () => uploadGalleryImages(elements.galleryFiles.files));
 elements.imagePreviewElement.addEventListener("error", () => {
   elements.imagePreview.hidden = true;
 });

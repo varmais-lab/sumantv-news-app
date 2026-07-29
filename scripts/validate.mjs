@@ -18,6 +18,7 @@ const requiredFiles = [
   "scripts/test-phase2-apis.mjs",
   "supabase/migrations/20260728000000_phase_1_shorts_foundation.sql",
   "supabase/migrations/20260729052113_phase_2_editorial_workflow.sql",
+  "supabase/migrations/20260729095043_phase_3_multimedia_publishing.sql",
 ];
 
 const failures = [];
@@ -39,6 +40,7 @@ const [
   vercelText,
   phase1Migration,
   phase2Migration,
+  phase3Migration,
   storyApi,
   sitemapApi,
   robots,
@@ -54,6 +56,10 @@ const [
   ),
   readFile(
     resolve(root, "supabase/migrations/20260729052113_phase_2_editorial_workflow.sql"),
+    "utf8",
+  ),
+  readFile(
+    resolve(root, "supabase/migrations/20260729095043_phase_3_multimedia_publishing.sql"),
     "utf8",
   ),
   readFile(resolve(root, "api/story.js"), "utf8"),
@@ -125,6 +131,22 @@ const assertions = [
   [storyApi.includes("status\", \"eq.published"), "story API must request published rows only"],
   [!storyApi.includes("service_role"), "story API must not use a service-role key"],
   [sitemapApi.includes("status\", \"eq.published"), "sitemap must request published rows only"],
+  [
+    phase3Migration.includes("alter table public.shorts_story_media enable row level security"),
+    "gallery media must enable RLS",
+  ],
+  [
+    phase3Migration.includes("grant select on table public.shorts_story_media to anon, authenticated"),
+    "gallery media Data API grants must be explicit",
+  ],
+  [
+    phase3Migration.includes("youtube_video_id ~ '^[A-Za-z0-9_-]{11}$'"),
+    "YouTube video IDs must be constrained",
+  ],
+  [editorApp.includes("youtubeVideoId"), "the editor must validate YouTube URLs"],
+  [editorApp.includes("uploadGalleryImages"), "the editor must upload gallery images"],
+  [app.includes("youtube-nocookie.com/embed"), "the public feed must use privacy-enhanced YouTube embeds"],
+  [vercelText.includes("frame-src https://www.youtube-nocookie.com"), "CSP must allow only the YouTube embed origin"],
 ];
 
 for (const id of editorApp.matchAll(/document\.querySelector\("#([^"]+)"\)/g)) {
@@ -139,9 +161,9 @@ for (const [condition, message] of assertions) {
 }
 
 if (failures.length) {
-  console.error("Phase 2 validation failed:");
+  console.error("Phase 3 validation failed:");
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exitCode = 1;
 } else {
-  console.log(`Phase 2 validation passed (${requiredFiles.length} required files).`);
+  console.log(`Phase 3 validation passed (${requiredFiles.length} required files).`);
 }
