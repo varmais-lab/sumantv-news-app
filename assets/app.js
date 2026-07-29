@@ -77,6 +77,21 @@ function storyIdentity(story) {
   return String(story.id || story.slug);
 }
 
+function requestedStorySlug() {
+  const querySlug = cleanText(new URLSearchParams(window.location.search).get("story"));
+  if (/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(querySlug)) return querySlug;
+
+  const match = window.location.pathname.match(/^\/stories\/([^/]+)\/?$/);
+  if (!match) return "";
+
+  try {
+    const pathSlug = cleanText(decodeURIComponent(match[1]));
+    return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pathSlug) ? pathSlug : "";
+  } catch {
+    return "";
+  }
+}
+
 function setPanel(panel) {
   elements.loadingPanel.hidden = panel !== "loading";
   elements.emptyPanel.hidden = panel !== "empty";
@@ -87,7 +102,7 @@ function setPanel(panel) {
 
 function buildFeedUrl() {
   const url = new URL("/rest/v1/shorts_stories", APP_CONFIG.supabaseUrl);
-  const requestedSlug = cleanText(new URLSearchParams(window.location.search).get("story"));
+  const requestedSlug = requestedStorySlug();
 
   url.searchParams.set(
     "select",
@@ -303,8 +318,7 @@ function toggleStoredAction({ set, key, id, button, activeMessage, inactiveMessa
 }
 
 async function shareStory(story) {
-  const shareUrl = new URL("/", window.location.origin);
-  shareUrl.searchParams.set("story", story.slug);
+  const shareUrl = new URL(`/stories/${encodeURIComponent(story.slug)}`, window.location.origin);
   const data = {
     title: story.title,
     text: story.summary,
@@ -382,7 +396,7 @@ function configureProgressiveLoading() {
 }
 
 function updateDocumentForSingleStory() {
-  if (state.stories.length !== 1 || !new URLSearchParams(window.location.search).has("story")) return;
+  if (state.stories.length !== 1 || !requestedStorySlug()) return;
   const story = state.stories[0];
   document.title = `${story.title} — SumanTV Shorts`;
   document.querySelector('meta[name="description"]')?.setAttribute("content", story.summary.slice(0, 155));

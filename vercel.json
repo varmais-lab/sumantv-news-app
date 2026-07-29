@@ -14,7 +14,30 @@
       "permanent": true
     }
   ],
+  "rewrites": [
+    {
+      "source": "/stories/:slug",
+      "destination": "/api/story?slug=:slug"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    }
+  ],
   "headers": [
+    {
+      "source": "/editor",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [

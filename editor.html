@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="te">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b0d13">
+    <meta name="color-scheme" content="dark">
+    <meta name="robots" content="noindex,nofollow,noarchive">
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/assets/editor.css">
+    <title>SumanTV Shorts — Editorial Desk</title>
+    <script src="/assets/editor.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#editorMain">ఎడిటోరియల్ డెస్క్‌కు వెళ్లండి</a>
+
+    <header class="editor-header">
+      <a class="brand" href="/" aria-label="SumanTV Shorts హోమ్">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span>SumanTV <strong>Shorts</strong></span>
+      </a>
+      <div class="session-summary" id="sessionSummary" hidden>
+        <span class="role-badge" id="roleBadge">Editor</span>
+        <span class="user-email" id="userEmail"></span>
+        <button class="ghost-button compact" id="logoutButton" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <main id="editorMain">
+      <section class="auth-shell" id="authView" aria-labelledby="loginTitle">
+        <div class="auth-card">
+          <p class="eyebrow">Secure editorial access</p>
+          <h1 id="loginTitle">SumanTV Shorts Editorial Desk</h1>
+          <p class="intro">
+            Supabaseలో editor లేదా admin పాత్ర ఉన్న ధృవీకరించిన ఖాతాలకు మాత్రమే ప్రవేశం ఉంటుంది.
+          </p>
+
+          <form class="auth-form" id="loginForm">
+            <label for="email">Email</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="username"
+              inputmode="email"
+              required
+            >
+
+            <label for="password">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              minlength="8"
+              required
+            >
+
+            <button class="primary-button" id="loginButton" type="submit">Sign in</button>
+          </form>
+
+          <p class="form-message" id="loginMessage" role="alert" aria-live="polite"></p>
+          <p class="security-note">
+            Session ఈ browser tabలో మాత్రమే ఉంటుంది. Service-role key browserకు పంపబడదు.
+          </p>
+        </div>
+      </section>
+
+      <section class="workspace" id="workspaceView" hidden aria-label="Editorial workspace">
+        <aside class="story-sidebar" aria-label="Story queue">
+          <div class="sidebar-heading">
+            <div>
+              <p class="eyebrow">Content queue</p>
+              <h1>Stories</h1>
+            </div>
+            <button class="primary-button compact" id="newStoryButton" type="button">
+              + New
+            </button>
+          </div>
+
+          <div class="queue-stats" aria-label="Story counts">
+            <span><strong id="draftCount">0</strong> Draft</span>
+            <span><strong id="reviewCount">0</strong> Review</span>
+            <span><strong id="publishedCount">0</strong> Live</span>
+          </div>
+
+          <div class="queue-filters">
+            <label class="sr-only" for="storySearch">Search stories</label>
+            <input id="storySearch" type="search" placeholder="Search title or slug">
+            <label class="sr-only" for="statusFilter">Filter by status</label>
+            <select id="statusFilter">
+              <option value="all">All statuses</option>
+              <option value="draft">Draft</option>
+              <option value="review">In review</option>
+              <option value="published">Published</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+
+          <div class="story-list" id="storyList" aria-live="polite"></div>
+          <button class="ghost-button refresh-button" id="refreshStoriesButton" type="button">
+            Refresh queue
+          </button>
+        </aside>
+
+        <section class="story-editor" aria-labelledby="formTitle">
+          <div class="editor-title-row">
+            <div>
+              <p class="eyebrow" id="formEyebrow">New story</p>
+              <h2 id="formTitle">Create a verified short</h2>
+            </div>
+            <a class="preview-link" id="previewLink" href="/" target="_blank" rel="noopener" hidden>
+              Public preview ↗
+            </a>
+          </div>
+
+          <form id="storyForm">
+            <input id="storyId" name="storyId" type="hidden">
+
+            <div class="form-grid two-columns">
+              <div class="field span-two">
+                <label for="titleTe">Telugu headline <span aria-hidden="true">*</span></label>
+                <input id="titleTe" name="titleTe" type="text" maxlength="220" required>
+                <small><span id="titleCount">0</span> / 220</small>
+              </div>
+
+              <div class="field span-two">
+                <label for="summaryTe">Telugu summary <span aria-hidden="true">*</span></label>
+                <textarea id="summaryTe" name="summaryTe" rows="5" maxlength="1200" required></textarea>
+                <small><span id="summaryCount">0</span> / 1200</small>
+              </div>
+
+              <div class="field">
+                <label for="titleEn">English headline</label>
+                <input id="titleEn" name="titleEn" type="text" maxlength="220">
+              </div>
+
+              <div class="field">
+                <label for="slug">Story slug <span aria-hidden="true">*</span></label>
+                <div class="input-action">
+                  <input
+                    id="slug"
+                    name="slug"
+                    type="text"
+                    pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                    maxlength="160"
+                    required
+                  >
+                  <button class="ghost-button compact" id="generateSlugButton" type="button">
+                    Generate
+                  </button>
+                </div>
+                <small>Lowercase English letters, numbers and hyphens only.</small>
+              </div>
+
+              <div class="field">
+                <label for="categoryId">Category <span aria-hidden="true">*</span></label>
+                <select id="categoryId" name="categoryId" required></select>
+              </div>
+
+              <div class="field">
+                <label for="sourceName">Source name <span aria-hidden="true">*</span></label>
+                <input id="sourceName" name="sourceName" type="text" maxlength="160" required>
+              </div>
+
+              <div class="field span-two">
+                <label for="sourceUrl">Source URL</label>
+                <input
+                  id="sourceUrl"
+                  name="sourceUrl"
+                  type="url"
+                  inputmode="url"
+                  placeholder="https://"
+                >
+              </div>
+
+              <div class="field span-two">
+                <label for="imageUrl">Story image</label>
+                <div class="image-tools">
+                  <input
+                    id="imageUrl"
+                    name="imageUrl"
+                    type="url"
+                    inputmode="url"
+                    placeholder="https://"
+                  >
+                  <label class="upload-button" for="imageFile">Upload image</label>
+                  <input
+                    class="visually-hidden-file"
+                    id="imageFile"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                  >
+                </div>
+                <small>JPG, PNG, WebP or AVIF. Maximum 5 MB.</small>
+                <div class="image-preview" id="imagePreview" hidden>
+                  <img id="imagePreviewElement" alt="">
+                </div>
+              </div>
+
+              <div class="field span-two">
+                <label for="imageAltTe">Image description in Telugu</label>
+                <input id="imageAltTe" name="imageAltTe" type="text" maxlength="300">
+              </div>
+
+              <div class="field">
+                <label for="publishAt">Publish time</label>
+                <input id="publishAt" name="publishAt" type="datetime-local">
+                <small>Admins can publish now or schedule for later.</small>
+              </div>
+
+              <fieldset class="flag-field">
+                <legend>Labels</legend>
+                <label class="check-row">
+                  <input id="isBreaking" name="isBreaking" type="checkbox">
+                  Breaking
+                </label>
+                <label class="check-row">
+                  <input id="isLive" name="isLive" type="checkbox">
+                  Live
+                </label>
+              </fieldset>
+            </div>
+
+            <div class="workflow-panel">
+              <div>
+                <span class="status-label">Current status</span>
+                <strong class="status-value" id="currentStatus">Unsaved</strong>
+                <span class="version-label" id="versionLabel"></span>
+              </div>
+              <p id="workflowMessage">
+                Save a draft, then submit it for admin review.
+              </p>
+            </div>
+
+            <div class="form-actions">
+              <button class="secondary-button" id="saveDraftButton" type="button">
+                Save draft
+              </button>
+              <button class="review-button" id="submitReviewButton" type="button">
+                Submit for review
+              </button>
+              <button class="primary-button" id="publishButton" type="button" hidden>
+                Publish
+              </button>
+              <button class="danger-button" id="archiveButton" type="button" hidden>
+                Archive
+              </button>
+            </div>
+
+            <p class="form-message" id="editorMessage" role="alert" aria-live="polite"></p>
+          </form>
+        </section>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <noscript>
+      <div class="noscript-message">Editorial Desk ఉపయోగించడానికి JavaScript అవసరం.</div>
+    </noscript>
+  </body>
+</html>
