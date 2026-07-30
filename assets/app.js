@@ -79,17 +79,14 @@ async function trackStoryEvent(storyId, eventType) {
   state.trackedEvents.add(eventKey);
 
   try {
-    const query = new URLSearchParams({
-      on_conflict: "story_id,session_id,event_type",
-    });
     const response = await fetch(
-      `${APP_CONFIG.supabaseUrl}/rest/v1/shorts_story_events?${query}`,
+      `${APP_CONFIG.supabaseUrl}/rest/v1/shorts_story_events`,
       {
         method: "POST",
         headers: {
           apikey: APP_CONFIG.supabasePublishableKey,
           "Content-Type": "application/json",
-          Prefer: "resolution=ignore-duplicates,return=minimal",
+          Prefer: "return=minimal",
         },
         body: JSON.stringify({
           story_id: storyId,
@@ -101,7 +98,9 @@ async function trackStoryEvent(storyId, eventType) {
         keepalive: true,
       },
     );
-    if (!response.ok) throw new Error(`Analytics request failed with HTTP ${response.status}`);
+    if (!response.ok && response.status !== 409) {
+      throw new Error(`Analytics request failed with HTTP ${response.status}`);
+    }
   } catch (error) {
     state.trackedEvents.delete(eventKey);
     console.warn("Unable to record analytics event", error);
