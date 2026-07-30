@@ -238,12 +238,20 @@ button {
   border: 0;
 }
 
+.story-gallery-shell {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  background: #050608;
+}
+
 .story-gallery {
   display: flex;
   width: 100%;
   overflow-x: auto;
   background: #050608;
   scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
   scrollbar-width: thin;
 }
 
@@ -283,6 +291,52 @@ button {
   border-radius: 999px;
   font-size: 0.7rem;
   font-weight: 800;
+}
+
+.gallery-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  display: none;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  place-items: center;
+  color: #fff;
+  background: rgb(8 10 15 / 76%);
+  border: 1px solid rgb(255 255 255 / 28%);
+  border-radius: 50%;
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 34%);
+  cursor: pointer;
+  transform: translateY(-50%);
+  backdrop-filter: blur(10px);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.gallery-nav:hover {
+  color: #11131a;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.gallery-nav:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.gallery-nav:disabled:hover {
+  color: #fff;
+  background: rgb(8 10 15 / 76%);
+  border-color: rgb(255 255 255 / 28%);
+}
+
+.gallery-nav-previous {
+  left: 1rem;
+}
+
+.gallery-nav-next {
+  right: 1rem;
 }
 
 .story-card::before {
@@ -632,6 +686,10 @@ button {
 
   .story-content {
     padding-inline: 2.25rem;
+  }
+
+  .gallery-nav {
+    display: grid;
   }
 }
 
