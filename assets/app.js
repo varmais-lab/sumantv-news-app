@@ -11,6 +11,7 @@ const APP_CONFIG = Object.freeze({
 const STORAGE_KEYS = Object.freeze({
   liked: "sumantv_shorts_liked_v1",
   saved: "sumantv_shorts_saved_v1",
+  analyticsSession: "sumantv_shorts_analytics_session_v1",
 });
 
 const state = {
@@ -19,6 +20,9 @@ const state = {
   activeIndex: 0,
   liked: readStoredSet(STORAGE_KEYS.liked),
   saved: readStoredSet(STORAGE_KEYS.saved),
+  analyticsSessionId: analyticsSessionId(),
+  trackedEvents: new Set(),
+  hasActiveStory: false,
   cardObserver: null,
   loadObserver: null,
   toastTimer: null,
@@ -54,6 +58,53 @@ function writeStoredSet(key, value) {
     localStorage.setItem(key, JSON.stringify([...value]));
   } catch {
     // The UI remains usable when storage is disabled.
+  }
+}
+
+function analyticsSessionId() {
+  try {
+    const existing = sessionStorage.getItem(STORAGE_KEYS.analyticsSession);
+    if (/^[0-9a-f-]{36}$/i.test(existing || "")) return existing;
+    const value = crypto.randomUUID();
+    sessionStorage.setItem(STORAGE_KEYS.analyticsSession, value);
+    return value;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
+
+async function trackStoryEvent(storyId, eventType) {
+  const eventKey = `${storyId}:${eventType}`;
+  if (state.trackedEvents.has(eventKey)) return;
+  state.trackedEvents.add(eventKey);
+
+  try {
+    const query = new URLSearchParams({
+      on_conflict: "story_id,session_id,event_type",
+    });
+    const response = await fetch(
+      `${APP_CONFIG.supabaseUrl}/rest/v1/shorts_story_events?${query}`,
+      {
+        method: "POST",
+        headers: {
+          apikey: APP_CONFIG.supabasePublishableKey,
+          "Content-Type": "application/json",
+          Prefer: "resolution=ignore-duplicates,return=minimal",
+        },
+        body: JSON.stringify({
+          story_id: storyId,
+          session_id: state.analyticsSessionId,
+          event_type: eventType,
+        }),
+        mode: "cors",
+        referrerPolicy: "strict-origin-when-cross-origin",
+        keepalive: true,
+      },
+    );
+    if (!response.ok) throw new Error(`Analytics request failed with HTTP ${response.status}`);
+  } catch (error) {
+    state.trackedEvents.delete(eventKey);
+    console.warn("Unable to record analytics event", error);
   }
 }
 
@@ -259,6 +310,23 @@ function pauseInactiveYoutubePlayers(activeCard = null) {
   });
 }
 
+function registerYoutubeAnalytics(iframe, storyId) {
+  iframe.addEventListener("load", () => {
+    const playerMessage = (payload) => {
+      iframe.contentWindow?.postMessage(
+        JSON.stringify(payload),
+        "https://www.youtube-nocookie.com",
+      );
+    };
+    playerMessage({ event: "listening", id: `story-video-${storyId}` });
+    playerMessage({
+      event: "command",
+      func: "addEventListener",
+      args: ["onStateChange"],
+    });
+  }, { once: true });
+}
+
 function makeStoryCard(story, index) {
   const article = makeElement("article", "story-card");
   article.id = `story-${story.id}`;
@@ -281,6 +349,8 @@ function makeStoryCard(story, index) {
       "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
     iframe.referrerPolicy = "strict-origin-when-cross-origin";
     iframe.setAttribute("allowfullscreen", "");
+    iframe.dataset.storyId = String(story.id);
+    registerYoutubeAnalytics(iframe, story.id);
     media.append(iframe);
     article.append(media);
   } else if (story.contentType === "gallery" && story.media.length) {
@@ -303,6 +373,15 @@ function makeStoryCard(story, index) {
       if (media.caption) figure.append(makeElement("figcaption", "", media.caption));
       gallery.append(figure);
     });
+    let galleryTimer;
+    gallery.addEventListener("scroll", () => {
+      window.clearTimeout(galleryTimer);
+      galleryTimer = window.setTimeout(() => {
+        if (gallery.scrollLeft >= gallery.clientWidth * 0.25) {
+          trackStoryEvent(story.id, "gallery_swipe");
+        }
+      }, 120);
+    }, { passive: true });
     article.append(gallery);
   } else if (story.imageUrl) {
     const image = makeElement("img", "story-media");
@@ -342,6 +421,7 @@ function makeStoryCard(story, index) {
   const identity = storyIdentity(story);
 
   const likeButton = makeActionButton("ఇష్టం", state.liked.has(identity), () => {
+    const wasLiked = state.liked.has(identity);
     toggleStoredAction({
       set: state.liked,
       key: STORAGE_KEYS.liked,
@@ -350,9 +430,11 @@ function makeStoryCard(story, index) {
       activeMessage: "ఈ కథనం మీకు నచ్చిన వాటిలో సేవ్ అయింది",
       inactiveMessage: "ఇష్టం తొలగించబడింది",
     });
+    if (!wasLiked) trackStoryEvent(story.id, "like");
   });
 
   const saveButton = makeActionButton("సేవ్", state.saved.has(identity), () => {
+    const wasSaved = state.saved.has(identity);
     toggleStoredAction({
       set: state.saved,
       key: STORAGE_KEYS.saved,
@@ -361,6 +443,7 @@ function makeStoryCard(story, index) {
       activeMessage: "ఈ డివైస్‌లో కథనం సేవ్ అయింది",
       inactiveMessage: "సేవ్ తొలగించబడింది",
     });
+    if (!wasSaved) trackStoryEvent(story.id, "save");
   });
 
   const shareButton = makeActionButton("షేర్", false, () => shareStory(story));
@@ -400,9 +483,11 @@ async function shareStory(story) {
   try {
     if (navigator.share) {
       await navigator.share(data);
+      trackStoryEvent(story.id, "share");
       return;
     }
     await navigator.clipboard.writeText(`${story.title}\n${shareUrl.href}`);
+    trackStoryEvent(story.id, "share");
     showToast("కథనం లింక్ కాపీ అయింది");
   } catch (error) {
     if (error?.name !== "AbortError") showToast("లింక్‌ను షేర్ చేయలేకపోయాం");
@@ -444,8 +529,14 @@ function observeCards() {
       if (!visible || visible.intersectionRatio < 0.55) return;
 
       const index = Number(visible.target.dataset.index);
+      const previousIndex = state.hasActiveStory ? state.activeIndex : null;
       state.activeIndex = index;
+      state.hasActiveStory = true;
       pauseInactiveYoutubePlayers(visible.target);
+      trackStoryEvent(state.stories[index].id, "view");
+      if (previousIndex !== null && previousIndex !== index) {
+        trackStoryEvent(state.stories[previousIndex].id, "complete");
+      }
       elements.activeCategory.textContent = visible.target.dataset.category || "తాజా";
       elements.storyCounter.textContent = `${index + 1} / ${state.stories.length}`;
     },
@@ -483,6 +574,7 @@ async function loadStories({ announce = false } = {}) {
   elements.feed.scrollTo({ top: 0, behavior: "auto" });
   state.rendered = 0;
   state.activeIndex = 0;
+  state.hasActiveStory = false;
   state.cardObserver?.disconnect();
   state.loadObserver?.disconnect();
 
@@ -539,5 +631,20 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden) pauseInactiveYoutubePlayers();
 });
 window.addEventListener("pagehide", () => pauseInactiveYoutubePlayers());
+window.addEventListener("message", (event) => {
+  if (event.origin !== "https://www.youtube-nocookie.com") return;
+  let payload;
+  try {
+    payload = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+  } catch {
+    return;
+  }
+  if (payload?.event !== "onStateChange" || payload.info !== 1) return;
+  const iframe = [...elements.storyList.querySelectorAll(".youtube-media iframe")]
+    .find((player) => player.contentWindow === event.source);
+  if (iframe?.dataset.storyId) {
+    trackStoryEvent(Number(iframe.dataset.storyId), "video_play");
+  }
+});
 
 loadStories();

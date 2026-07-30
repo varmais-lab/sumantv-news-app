@@ -6,8 +6,11 @@ const root = resolve(import.meta.dirname, "..");
 const requiredFiles = [
   "index.html",
   "editor.html",
+  "analytics.html",
   "assets/app.css",
   "assets/app.js",
+  "assets/analytics.css",
+  "assets/analytics.js",
   "assets/editor.css",
   "assets/editor.js",
   "assets/favicon.svg",
@@ -19,6 +22,8 @@ const requiredFiles = [
   "supabase/migrations/20260728000000_phase_1_shorts_foundation.sql",
   "supabase/migrations/20260729052113_phase_2_editorial_workflow.sql",
   "supabase/migrations/20260729095043_phase_3_multimedia_publishing.sql",
+  "supabase/migrations/20260730051046_phase_3b_analytics.sql",
+  "supabase/migrations/20260730051737_phase_3b_analytics_security_invoker.sql",
 ];
 
 const failures = [];
@@ -35,19 +40,24 @@ for (const file of requiredFiles) {
 const [
   html,
   editorHtml,
+  analyticsHtml,
   app,
+  analyticsApp,
   editorApp,
   vercelText,
   phase1Migration,
   phase2Migration,
   phase3Migration,
+  phase3bMigration,
   storyApi,
   sitemapApi,
   robots,
 ] = await Promise.all([
   readFile(resolve(root, "index.html"), "utf8"),
   readFile(resolve(root, "editor.html"), "utf8"),
+  readFile(resolve(root, "analytics.html"), "utf8"),
   readFile(resolve(root, "assets/app.js"), "utf8"),
+  readFile(resolve(root, "assets/analytics.js"), "utf8"),
   readFile(resolve(root, "assets/editor.js"), "utf8"),
   readFile(resolve(root, "vercel.json"), "utf8"),
   readFile(
@@ -60,6 +70,10 @@ const [
   ),
   readFile(
     resolve(root, "supabase/migrations/20260729095043_phase_3_multimedia_publishing.sql"),
+    "utf8",
+  ),
+  readFile(
+    resolve(root, "supabase/migrations/20260730051046_phase_3b_analytics.sql"),
     "utf8",
   ),
   readFile(resolve(root, "api/story.js"), "utf8"),
@@ -84,6 +98,7 @@ const assertions = [
   [!app.includes("docs.google.com/spreadsheets"), "the public feed must not use Google Sheets"],
   [app.includes("/stories/${encodeURIComponent(story.slug)}"), "sharing must use clean story URLs"],
   [editorHtml.includes("noindex,nofollow,noarchive"), "the editorial desk must be noindex"],
+  [analyticsHtml.includes("noindex,nofollow,noarchive"), "the analytics dashboard must be noindex"],
   [!editorHtml.includes("onclick="), "editor inline event handlers are not allowed"],
   [!editorApp.includes("innerHTML"), "editor rendering must not use innerHTML"],
   [!editorApp.includes("service_role"), "editor JavaScript must not mention a service-role key"],
@@ -97,6 +112,7 @@ const assertions = [
   [vercelText.includes('"/stories/:slug"'), "clean story routes must be rewritten"],
   [vercelText.includes('"/api/sitemap"'), "the dynamic sitemap rewrite is required"],
   [robots.includes("Disallow: /editor"), "robots.txt must exclude the editorial desk"],
+  [robots.includes("Disallow: /analytics"), "robots.txt must exclude analytics"],
   [
     vercelText.includes(`'sha256-${structuredDataHash}'`),
     "the Content Security Policy must allow only the exact JSON-LD hash",
@@ -153,6 +169,28 @@ const assertions = [
   [
     app.includes('"pauseVideo"') && app.includes("enablejsapi=1"),
     "YouTube embeds must enable the player API and receive pause commands",
+  ],
+  [
+    app.includes("shorts_story_events") && app.includes("sumantv_shorts_analytics_session_v1"),
+    "the public feed must record privacy-safe first-party analytics",
+  ],
+  [
+    phase3bMigration.includes("alter table public.shorts_story_events enable row level security"),
+    "analytics events must enable RLS",
+  ],
+  [
+    phase3bMigration.includes("shorts_analytics_dashboard") &&
+      phase3bMigration.includes("shorts_private.is_admin") &&
+      phase3bMigration.includes("security invoker"),
+    "analytics aggregates must be restricted to admins",
+  ],
+  [
+    !/\b(ip_address|user_agent|email)\s+(text|varchar|inet)\b/i.test(phase3bMigration),
+    "reader analytics must not store identifying request data",
+  ],
+  [
+    analyticsApp.includes("/rest/v1/rpc/shorts_analytics_dashboard"),
+    "the analytics dashboard must use the admin aggregate RPC",
   ],
   [vercelText.includes("frame-src https://www.youtube-nocookie.com"), "CSP must allow only the YouTube embed origin"],
 ];

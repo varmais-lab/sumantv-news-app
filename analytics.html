@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b0d13">
+    <meta name="color-scheme" content="dark">
+    <meta name="robots" content="noindex,nofollow,noarchive">
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/assets/analytics.css">
+    <title>SumanTV Shorts — Analytics</title>
+    <script src="/assets/analytics.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#analyticsMain">Skip to analytics</a>
+
+    <header class="analytics-header">
+      <a class="brand" href="/" aria-label="SumanTV Shorts home">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span>SumanTV <strong>Shorts</strong></span>
+      </a>
+      <nav class="header-actions" aria-label="Editorial navigation">
+        <a class="button secondary" href="/editor">Editorial desk</a>
+        <button class="button secondary" id="logoutButton" type="button">Sign out</button>
+      </nav>
+    </header>
+
+    <main id="analyticsMain">
+      <section class="access-panel" id="accessPanel">
+        <p class="eyebrow">Admin analytics</p>
+        <h1>Checking your access…</h1>
+        <p id="accessMessage">Please wait while the secure editorial session is verified.</p>
+        <a class="button primary" id="editorLoginLink" href="/editor" hidden>
+          Sign in through Editorial Desk
+        </a>
+      </section>
+
+      <section class="dashboard" id="dashboard" hidden>
+        <div class="dashboard-heading">
+          <div>
+            <p class="eyebrow">First-party performance</p>
+            <h1>Editorial Analytics</h1>
+            <p class="subtle" id="generatedAt">Loading current totals…</p>
+          </div>
+          <div class="range-picker" aria-label="Analytics date range">
+            <button class="range-button" data-days="1" type="button">Today</button>
+            <button class="range-button is-active" data-days="7" type="button">7 days</button>
+            <button class="range-button" data-days="30" type="button">30 days</button>
+          </div>
+        </div>
+
+        <p class="dashboard-message" id="dashboardMessage" role="status" aria-live="polite"></p>
+
+        <section class="metric-grid" id="metricGrid" aria-label="Performance summary"></section>
+
+        <div class="dashboard-grid">
+          <section class="panel span-two" aria-labelledby="trendTitle">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Daily performance</p>
+                <h2 id="trendTitle">Views and engagement</h2>
+              </div>
+              <div class="legend" aria-hidden="true">
+                <span><i class="legend-view"></i> Views</span>
+                <span><i class="legend-engagement"></i> Engagement</span>
+              </div>
+            </div>
+            <div class="trend-chart" id="trendChart"></div>
+          </section>
+
+          <section class="panel" aria-labelledby="formatTitle">
+            <p class="eyebrow">Content mix</p>
+            <h2 id="formatTitle">Performance by format</h2>
+            <div class="breakdown-list" id="contentTypeList"></div>
+          </section>
+
+          <section class="panel" aria-labelledby="categoryTitle">
+            <p class="eyebrow">Audience interest</p>
+            <h2 id="categoryTitle">Performance by category</h2>
+            <div class="breakdown-list" id="categoryList"></div>
+          </section>
+
+          <section class="panel span-two" aria-labelledby="storiesTitle">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Story leaderboard</p>
+                <h2 id="storiesTitle">Top-performing stories</h2>
+              </div>
+              <span class="subtle">Completion = reader swiped to another story</span>
+            </div>
+            <div class="table-shell">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Story</th>
+                    <th scope="col">Format</th>
+                    <th scope="col">Views</th>
+                    <th scope="col">Completion</th>
+                    <th scope="col">Likes</th>
+                    <th scope="col">Saves</th>
+                    <th scope="col">Shares</th>
+                    <th scope="col">Media actions</th>
+                  </tr>
+                </thead>
+                <tbody id="storyTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <p class="privacy-note">
+          Analytics uses random browser-tab session IDs only. No reader names, emails, IP
+          addresses, user-agent strings or device fingerprints are stored.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

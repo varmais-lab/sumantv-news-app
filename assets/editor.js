@@ -27,6 +27,7 @@ const elements = {
   authView: document.querySelector("#authView"),
   workspaceView: document.querySelector("#workspaceView"),
   sessionSummary: document.querySelector("#sessionSummary"),
+  analyticsLink: document.querySelector("#analyticsLink"),
   loginForm: document.querySelector("#loginForm"),
   loginButton: document.querySelector("#loginButton"),
   loginMessage: document.querySelector("#loginMessage"),
@@ -224,6 +225,7 @@ function showWorkspace() {
   elements.sessionSummary.hidden = false;
   elements.userEmail.textContent = state.user?.email || "";
   elements.roleBadge.textContent = state.role === "admin" ? "Admin" : "Editor";
+  elements.analyticsLink.hidden = state.role !== "admin";
   elements.publishButton.hidden = state.role !== "admin";
   elements.archiveButton.hidden = state.role !== "admin";
 }
