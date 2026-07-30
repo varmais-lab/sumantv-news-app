@@ -24,6 +24,8 @@ const requiredFiles = [
   "supabase/migrations/20260729095043_phase_3_multimedia_publishing.sql",
   "supabase/migrations/20260730051046_phase_3b_analytics.sql",
   "supabase/migrations/20260730051737_phase_3b_analytics_security_invoker.sql",
+  "supabase/migrations/20260730052357_phase_3b_analytics_anon_dedup.sql",
+  "supabase/migrations/20260730052533_phase_3b_analytics_minimal_insert.sql",
 ];
 
 const failures = [];
@@ -177,6 +179,10 @@ const assertions = [
   [
     phase3bMigration.includes("alter table public.shorts_story_events enable row level security"),
     "analytics events must enable RLS",
+  ],
+  [
+    app.includes('response.status !== 409') && !app.includes("on_conflict"),
+    "analytics duplicates must rely on the database constraint without anonymous reads",
   ],
   [
     phase3bMigration.includes("shorts_analytics_dashboard") &&
