@@ -353,8 +353,10 @@ function makeStoryCard(story, index) {
     media.append(iframe);
     article.append(media);
   } else if (story.contentType === "gallery" && story.media.length) {
+    const galleryShell = makeElement("div", "story-gallery-shell");
     const gallery = makeElement("div", "story-gallery");
     gallery.setAttribute("aria-label", `${story.title} gallery`);
+    gallery.tabIndex = 0;
     story.media.forEach((media, mediaIndex) => {
       const figure = makeElement("figure", "gallery-slide");
       const image = makeElement("img");
@@ -372,8 +374,34 @@ function makeStoryCard(story, index) {
       if (media.caption) figure.append(makeElement("figcaption", "", media.caption));
       gallery.append(figure);
     });
+
+    const previousButton = makeElement("button", "gallery-nav gallery-nav-previous", "‹");
+    previousButton.type = "button";
+    previousButton.setAttribute("aria-label", "Previous gallery image");
+
+    const nextButton = makeElement("button", "gallery-nav gallery-nav-next", "›");
+    nextButton.type = "button";
+    nextButton.setAttribute("aria-label", "Next gallery image");
+
+    const updateGalleryNavigation = () => {
+      const currentIndex = Math.round(gallery.scrollLeft / Math.max(gallery.clientWidth, 1));
+      previousButton.disabled = currentIndex <= 0;
+      nextButton.disabled = currentIndex >= story.media.length - 1;
+    };
+
+    const moveGallery = (direction) => {
+      gallery.scrollBy({
+        left: direction * gallery.clientWidth,
+        behavior: "smooth",
+      });
+    };
+
+    previousButton.addEventListener("click", () => moveGallery(-1));
+    nextButton.addEventListener("click", () => moveGallery(1));
+
     let galleryTimer;
     gallery.addEventListener("scroll", () => {
+      updateGalleryNavigation();
       window.clearTimeout(galleryTimer);
       galleryTimer = window.setTimeout(() => {
         if (gallery.scrollLeft >= gallery.clientWidth * 0.25) {
@@ -381,7 +409,9 @@ function makeStoryCard(story, index) {
         }
       }, 120);
     }, { passive: true });
-    article.append(gallery);
+    updateGalleryNavigation();
+    galleryShell.append(gallery, previousButton, nextButton);
+    article.append(galleryShell);
   } else if (story.imageUrl) {
     const image = makeElement("img", "story-media");
     image.src = story.imageUrl;
